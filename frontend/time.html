@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تحديد الوقت — BONITA TOUCH</title>
+  <style>
+    :root{ --bg:#fafafa; --card:#fff; --line:#ececec; --fg:#111; --muted:#666;
+      --accent:#6f4ef6; --radius:16px; --shadow:0 12px 40px rgba(0,0,0,.06); }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
+    a{text-decoration:none;color:inherit}
+    .page{max-width:1180px;margin:40px auto;padding:0 16px}
+    .layout{display:grid;grid-template-columns:1fr 340px;grid-template-areas:"main aside";gap:24px;align-items:start}
+    main{grid-area:main} aside{grid-area:aside}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .brand-card{display:flex;align-items:center;gap:14px;padding:16px}
+    .brand-card .thumb{width:100px;height:100px;border-radius:20px;object-fit:cover;box-shadow:var(--shadow)}
+    .brand-card .name{font-size:22px;font-weight:900;margin:0}
+    .brand-card .meta{color:var(--muted);margin-top:6px}
+    .box{padding:18px}
+    .row-between{display:flex;justify-content:space-between;gap:10px}
+    .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:12px 0}
+    .pill{display:inline-block;padding:6px 10px;background:#f3f4f6;border-radius:999px;font-size:12px}
+    .total{font-weight:800}
+    .btn-primary{width:100%;margin-top:12px;appearance:none;border:0;border-radius:14px;padding:14px 16px;background:#111;color:#fff;font-weight:800;cursor:pointer}
+    .btn-primary:hover{filter:brightness(.95)}
+    .header-title{font-size:38px;font-weight:900;margin:8px 0 12px}
+    .panel{padding:18px}
+    .hint{color:var(--muted);font-size:14px;margin:4px 0 8px}
+    .days{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 16px}
+    .day{min-width:74px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer}
+    .day .dow{font-size:12px;color:var(--muted)} .day .dn{font-weight:800}
+    .day.is-active{border-color:var(--accent);background:#f5f2ff}
+    .slots{display:flex;flex-direction:column;gap:12px}
+    .slot{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fff}
+    .slot.is-active{border-color:var(--accent);background:#f5f2ff}
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:999}
+    .modal-backdrop.is-open{display:flex}
+    .modal-card{width:min(520px,92vw);background:#fff;color:var(--fg);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px 20px}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .modal-title{font-size:22px;font-weight:900}
+    .modal-close{border:0;background:#0000;font-size:22px;cursor:pointer;line-height:1}
+    .modal-sub{color:var(--muted);font-size:14px;margin-bottom:14px}
+    .oauth-btn,.action-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:800}
+    .oauth-btn{border:1px solid var(--line);background:#fff}.oauth-btn:hover{background:#f8f8ff}
+    .action-btn{background:#111;color:#fff;border:0}.action-btn:disabled{opacity:.5;cursor:not-allowed}
+    .or-row{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted)}
+    .or-row::before,.or-row::after{content:"";height:1px;background:var(--line);flex:1}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+    .label{font-size:13px;color:var(--muted)}
+    .input{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;font-size:14px}
+    .input:focus{outline:2px solid #e9e5ff;border-color:var(--accent)}
+    .err{color:#b91c1c;font-size:12px;display:none}.err.show{display:block}
+    @media (max-width:1024px){.layout{grid-template-columns:1fr;grid-template-areas:"aside" "main"}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="layout">
+      <main>
+        <div class="card panel">
+          <div class="header-title">تحديد الوقت</div>
+          <div class="hint">اختر اليوم ثم اضغط على الوقت المناسب</div>
+          <div class="hint">الأيام المتاحة</div>
+          <div class="days" id="daysRow"></div>
+          <div class="hint">الأوقات المتاحة</div>
+          <div class="slots" id="slotsList"></div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card brand-card" style="margin-bottom:14px">
+          <div style="flex:1">
+            <h3 class="name" id="salonName">BONITA TOUCH</h3>
+            <div class="meta" id="salonCity">النعيم، جدة</div>
+          </div>
+          <img class="thumb" src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg?class=thumb" alt="">
+        </div>
+
+        <div class="card box">
+          <div class="muted" style="margin-bottom:8px">الخدمة/الخدمات</div>
+          <div id="chosenList"></div>
+          <div class="hr"></div>
+
+          <div class="muted" style="margin-bottom:4px">المحترف/المحترفون</div>
+          <div class="pill" id="prosPill">أي محترف</div>
+          <div class="hr"></div>
+
+          <div class="row-between" style="margin:6px 0">
+            <span class="muted">التاريخ</span><span id="dateOut">—</span>
+          </div>
+          <div class="row-between" style="margin:6px 0 12px">
+            <span class="muted">الوقت</span><span id="timeOut">—</span>
+          </div>
+
+          <div class="hr"></div>
+          <div class="row-between" style="margin:8px 0 14px">
+            <span class="muted">الإجمالي</span><span class="total"><span id="totalOut">0</span> ر.س</span>
+          </div>
+          <button class="btn-primary" id="goNext">المتابعة</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<!-- Auth modal -->
+<div id="authModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="authTitle">تأكيد الحجز</div>
+      <button class="modal-close" id="authClose" aria-label="إغلاق">×</button>
+    </div>
+    <div class="modal-sub">أدخلي معلوماتك للمتابعة. سيتم إرسال تفاصيل الحجز إليك.</div>
+    
+    <!-- حقل الاسم -->
+    <div class="field">
+      <label class="label" for="customerName">الاسم الكامل</label>
+      <input class="input" id="customerName" type="text" placeholder="اسمك الكامل" />
+      <div id="nameErr" class="err">أدخلي الاسم من فضلك.</div>
+    </div>
+
+    <!-- حقل رقم الجوال -->
+    <div class="field">
+      <label class="label" for="phone">رقم الجوال</label>
+      <input class="input" id="phone" type="tel" inputmode="numeric" placeholder="05xxxxxxxx" />
+      <div id="phoneErr" class="err">أدخلي رقم جوال صالح.</div>
+    </div>
+
+    <div class="or-row">أو</div>
+
+    <!-- حقل البريد الإلكتروني -->
+    <div class="field">
+      <label class="label" for="email">البريد الإلكتروني</label>
+      <input class="input" id="email" type="email" placeholder="name@example.com" />
+      <div id="emailErr" class="err">أدخلي بريد إلكتروني صحيح.</div>
+    </div>
+
+    <button id="authSubmit" class="action-btn" type="button">تأكيد الحجز</button>
+  </div>
+</div>
+
+<script>
+  /* ===== بيانات من الصفحات السابقة ===== */
+  const cart = (()=>{ try{return JSON.parse(sessionStorage.getItem('cart')||'{"items":[],"total":0}')}catch(e){return {items:[],total:0}} })();
+  const prosByCategory = (()=>{ try{return JSON.parse(sessionStorage.getItem('prosByCategory')||'{}')}catch(e){return {}} })();
+  let booking = (()=>{ try{return JSON.parse(localStorage.getItem('booking')||'{}')}catch(e){return {}} })();
+
+  /* ===== سايدبار ===== */
+  const chosenList=document.getElementById('chosenList'), totalOut=document.getElementById('totalOut'), prosPill=document.getElementById('prosPill'), dateOut=document.getElementById('dateOut'), timeOut=document.getElementById('timeOut');
+
+  function renderServicesFromCart(){
+    chosenList.innerHTML=(cart.items||[]).map(it=>`
+      <div class="row-between" style="padding:6px 0">
+        <span>${it.name||it.title||'خدمة'}</span>
+        <span>${it.price?(it.price+' ر.س'):(it.amount?it.amount+' ر.س':'')}</span>
+      </div>`).join('')||'<div class="muted">لم يتم اختيار خدمات بعد.</div>';
+    totalOut.textContent=cart.total||0;
+  }
+  function renderPros(){
+    const labels={'أظافر':'أظافر','شعر':'شعر','ميكب':'ميكب'};
+    const entries=Object.entries(prosByCategory);
+    prosPill.textContent=entries.length?entries.map(([cat,p])=>`${(p?.name)||'محترف'} – ${(labels[cat]||'عام')}`).join('، '):'أي محترف';
+  }
+  function renderDateTime(){ dateOut.textContent=booking.date||'—'; timeOut.textContent=booking.time||'—'; }
+  renderServicesFromCart(); renderPros(); renderDateTime();
+
+  /* ===== تقويم وأوقات ===== */
+  const arDays=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'], pad=n=>String(n).padStart(2,'0');
+  const daysRow=document.getElementById('daysRow'), slotsBox=document.getElementById('slotsList');
+  const today=new Date();
+  const next7=[...Array(7)].map((_,i)=>{const d=new Date(today);d.setDate(today.getDate()+i);return{date:d,label:`${arDays[d.getDay()]} ${d.getDate()} ${d.toLocaleString('ar-SA',{month:'long'})}`,shortDow:arDays[d.getDay()],dayNum:d.getDate(),iso:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};});
+  let activeDayIso=booking.dateIso||next7[0].iso;
+  let availableSlots = []; // الأوقات المتاحة
+
+  function drawDays(){
+    daysRow.innerHTML='';
+    next7.forEach(d=>{
+      const btn=document.createElement('button');
+      btn.className='day'+(d.iso===activeDayIso?' is-active':'');
+      btn.innerHTML=`<div class="dow">${d.shortDow}</div><div class="dn">${d.dayNum}</div>`;
+      btn.addEventListener('click',async ()=>{
+        activeDayIso=d.iso;
+        booking.date=d.label;
+        booking.dateIso=d.iso;
+        localStorage.setItem('booking',JSON.stringify(booking));
+        document.querySelectorAll('.day').forEach(b=>b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        await loadAvailableSlots(); // جلب الأوقات المتاحة
+        drawSlots();
+        renderDateTime();
+      });
+      daysRow.appendChild(btn);
+    });
+    const idx=next7.findIndex(x=>x.iso===activeDayIso); 
+    if(idx>-1) {
+      daysRow.children[idx]?.click();
+    } else {
+      daysRow.firstElementChild?.click();
+    }
+  }
+
+  // جلب الأوقات المتاحة من السيرفر
+  async function loadAvailableSlots() {
+    try {
+      slotsBox.innerHTML = '<div style="text-align:center;padding:20px;color:#999">جاري التحميل...</div>';
+      
+      // استخدام أول محترفة من القائمة للفلترة (اختياري)
+      const selectedPros = Object.values(prosByCategory).filter(p => p);
+      const profId = selectedPros[0]?.id || null;
+      
+      const url = profId 
+        ? `http://localhost:5000/api/available-slots?date=${activeDayIso}&professionalId=${profId}`
+        : `http://localhost:5000/api/available-slots?date=${activeDayIso}`;
+      
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      if (result.success) {
+        availableSlots = result.slots || [];
+        
+        if (availableSlots.length === 0) {
+          slotsBox.innerHTML = '<div style="text-align:center;padding:20px;color:#dc2626">⚠️ لا توجد أوقات متاحة في هذا اليوم</div>';
+        }
+      } else {
+        availableSlots = [];
+        slotsBox.innerHTML = '<div style="text-align:center;padding:20px;color:#dc2626">حدث خطأ في تحميل الأوقات</div>';
+      }
+    } catch (error) {
+      console.error('خطأ في جلب الأوقات:', error);
+      availableSlots = [];
+      slotsBox.innerHTML = '<div style="text-align:center;padding:20px;color:#dc2626">تعذر الاتصال بالسيرفر</div>';
+    }
+  }
+
+  function drawSlots(){
+    if (availableSlots.length === 0) {
+      return; // الرسالة موجودة من loadAvailableSlots
+    }
+    
+    slotsBox.innerHTML='';
+    availableSlots.forEach(t=>{
+      const item=document.createElement('button');
+      item.className='slot'+(booking.time===t?' is-active':'');
+      item.innerHTML=`<span>${t}</span><span class="muted">✅ متاح</span>`;
+      item.addEventListener('click',()=>{
+        document.querySelectorAll('.slot').forEach(s=>s.classList.remove('is-active'));
+        item.classList.add('is-active');
+        booking.time=t;
+        localStorage.setItem('booking',JSON.stringify(booking));
+        renderDateTime();
+      });
+      slotsBox.appendChild(item);
+    });
+  }
+
+  // تحميل الأوقات عند فتح الصفحة
+  drawDays();
+
+  /* ===== مودال التسجيل + تحويل إلى confirm ===== */
+  const goNextBtn=document.getElementById('goNext'), modal=document.getElementById('authModal'), modalClose=document.getElementById('authClose'), authSubmit=document.getElementById('authSubmit');
+  const nameInp=document.getElementById('customerName'), phoneInp=document.getElementById('phone'), emailInp=document.getElementById('email');
+  const nameErr=document.getElementById('nameErr'), phoneErr=document.getElementById('phoneErr'), emailErr=document.getElementById('emailErr');
+  
+  const openAuth=()=>{modal.classList.add('is-open');modal.setAttribute('aria-hidden','false')};
+  const closeAuth=()=>{modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true')};
+  const redirectToConfirm=()=>{ window.location.href='confirm.html'; };
+
+  goNextBtn.addEventListener('click',()=>{
+    if(!booking.dateIso || !booking.date){ 
+      alert('فضلاً اختاري يومًا أولاً.'); 
+      return; 
+    }
+    if(!booking.time){ 
+      alert('فضلاً اختاري وقتًا.'); 
+      return; 
+    }
+    
+    booking.salon={name:'BONITA TOUCH',city:'النعيم، جدة'};
+    booking.items=(cart.items||[]).map(it=>({title:it.name||it.title,price:it.price||it.amount||'',minutes:it.minutes||45,details:it.details||'',cat:it.cat||it.category||''}));
+    booking.total=cart.total||0;
+    booking.prosByCategory=JSON.parse(sessionStorage.getItem('prosByCategory')||'{}');
+    booking.pros=Object.values(booking.prosByCategory||{});
+    localStorage.setItem('booking',JSON.stringify(booking));
+    openAuth();
+  });
+  
+  modalClose.addEventListener('click',closeAuth);
+  modal.addEventListener('click',e=>{ if(e.target===modal) closeAuth(); });
+
+  const isValidPhone=v=>/^0?5\d{8}$/.test(String(v||'').trim());
+  const isValidEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
+
+  // ========================================
+  // ✨ الكود المحسّن لحفظ الحجز
+  // ========================================
+  authSubmit.addEventListener('click', async ()=>{
+    nameErr.classList.remove('show'); 
+    phoneErr.classList.remove('show'); 
+    emailErr.classList.remove('show');
+    
+    const name=nameInp.value.trim(), phone=phoneInp.value.trim(), email=emailInp.value.trim();
+    
+    // التحقق من الاسم (مطلوب)
+    if(!name){ nameErr.classList.add('show'); return; }
+    
+    // التحقق من وسيلة التواصل (لازم جوال أو إيميل)
+    if(!phone && !email){ 
+      phoneErr.textContent = 'أدخلي رقم الجوال أو البريد الإلكتروني';
+      phoneErr.classList.add('show'); 
+      return; 
+    }
+    
+    // التحقق من صحة الجوال (لو موجود)
+    if(phone && !isValidPhone(phone)){ 
+      phoneErr.textContent = 'أدخلي رقم جوال صالح.';
+      phoneErr.classList.add('show'); 
+      return; 
+    }
+    
+    // التحقق من صحة الإيميل (لو موجود)
+    if(email && !isValidEmail(email)){ 
+      emailErr.classList.add('show'); 
+      return; 
+    }
+    
+    // تعطيل الزر أثناء الإرسال
+    authSubmit.disabled = true;
+    authSubmit.textContent = 'جاري الحفظ...';
+    
+    try {
+      // جمع بيانات المحترفات بشكل صحيح
+      const prosArray = Object.entries(prosByCategory)
+        .filter(([cat, pro]) => pro !== null)
+        .map(([cat, pro]) => ({
+          id: pro.id,
+          name: pro.name,
+          rating: pro.rating,
+          category: cat
+        }));
+
+      // تحضير بيانات الخدمات مع المحترفة المناسبة لكل خدمة
+      const itemsWithPros = (booking.items || []).map(item => {
+        const itemCategory = item.cat || item.category;
+        const assignedPro = itemCategory ? prosByCategory[itemCategory] : null;
+        
+        return {
+          service_name: item.title || item.name || 'خدمة',
+          price: Number(item.price) || 0,
+          minutes: Number(item.minutes) || 45,
+          details: item.details || '',
+          professional_id: assignedPro?.id || null,
+          professional_name: assignedPro?.name || null
+        };
+      });
+
+      // إعداد بيانات الحجز للإرسال
+      const bookingData = {
+        customer_name: name,
+        contact: {
+          method: phone ? 'phone' : 'email',
+          value: phone || email
+        },
+        date_iso: booking.dateIso,
+        date_display: booking.date,
+        time: booking.time,
+        professional: prosArray[0] || null,
+        items: itemsWithPros,
+        total: Number(booking.total) || 0
+      };
+      
+      console.log('📤 إرسال البيانات:', bookingData);
+      
+      // إرسال الحجز للسيرفر
+      const response = await fetch('http://localhost:5000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingData)
+      });
+      
+      console.log('📥 الرد من السيرفر:', response.status);
+      
+      const result = await response.json();
+      console.log('📦 البيانات المستلمة:', result);
+      
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'فشل حفظ الحجز');
+      }
+      
+      // حفظ البيانات في localStorage لعرضها في صفحة التأكيد
+      booking.customer_name = name;
+      booking.contact = {method: phone ? 'phone' : 'email', value: phone || email};
+      booking.booking_id = result.id;
+      booking.pros = prosArray;
+      localStorage.setItem('booking', JSON.stringify(booking));
+      
+      console.log('✅ تم الحفظ بنجاح!');
+      
+      // الانتقال لصفحة التأكيد
+      closeAuth();
+      redirectToConfirm();
+      
+    } catch (error) {
+      console.error('❌ خطأ في حفظ الحجز:', error);
+      console.error('التفاصيل:', error.message);
+      
+      let errorMessage = 'حدث خطأ أثناء حفظ الحجز.';
+      
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage = '⚠️ لا يمكن الاتصال بالسيرفر.\nتأكدي من تشغيل السيرفر على المنفذ 5000';
+      } else if (error.message) {
+        errorMessage = `⚠️ ${error.message}`;
+      }
+      
+      alert(errorMessage + '\n\nافتحي Console (F12) لمزيد من التفاصيل.');
+      
+      authSubmit.disabled = false;
+      authSubmit.textContent = 'تأكيد الحجز';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تم إلغاء الموعد — BONITA TOUCH</title>
+  <style>
+    :root{
+      --bg:#fafafa; --card:#fff; --line:#ececec; --fg:#111; --muted:#666;
+      --accent:#6f4ef6; --radius:16px; --shadow:0 12px 40px rgba(0,0,0,.06);
+      --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
+    a{text-decoration:none;color:inherit}
+    .page{max-width:1180px;margin:40px auto;padding:0 16px}
+
+    /* هيرو صغيرة موحّدة */
+    .hero{
+      position:relative; overflow:hidden; border-radius:20px; height:220px;
+      background:#ddd; box-shadow:var(--shadow); margin-bottom:18px;
+    }
+    .hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.9)}
+    .brand{
+      position:absolute; inset-inline-start:24px; inset-block-end:16px;
+      color:#fff; font-weight:900; font-size:38px; text-shadow:0 6px 18px rgba(0,0,0,.35)
+    }
+
+    /* نفس شبكة الصفحات: المحتوى يسار، سايدبار يمين */
+    .layout{display:grid;grid-template-columns:1fr 340px;grid-template-areas:"main aside";gap:24px;align-items:start}
+    main{grid-area:main}
+    aside{grid-area:aside}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+    .box{padding:18px}
+    .row{display:flex;gap:10px;align-items:center}
+    .row-between{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:12px 0}
+    .muted{color:var(--muted)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:800}
+
+    /* حالة الإلغاء */
+    .status{
+      display:inline-flex;gap:10px;align-items:center;
+      background:#fef2f2;border:1px solid #fee2e2;color:#991b1b;
+      padding:10px 14px;border-radius:12px;font-weight:900
+    }
+    .big{font-size:28px;font-weight:900;margin:8px 0}
+
+    .btn{appearance:none;border:0;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}
+    .btn-dark{background:#111;color:#fff}
+    .btn-light{background:#fff;border:1px solid var(--line)}
+    .brand-card{display:flex;align-items:center;gap:14px;padding:16px}
+    .brand-card .thumb{width:100px;height:100px;border-radius:20px;object-fit:cover;box-shadow:var(--shadow)}
+    .brand-card .name{font-size:22px;font-weight:900;margin:0}
+    .brand-card .meta{color:var(--muted);margin-top:6px}
+
+    @media (max-width:1024px){
+      .layout{grid-template-columns:1fr;grid-template-areas:"aside" "main"}
+    }
+  </style>
+</head>
+<body>
+  <!-- هيرو -->
+  <div class="page">
+    <div class="hero">
+      <img src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg" alt="">
+      <div class="brand">BONITA TOUCH</div>
+    </div>
+
+    <div class="layout">
+      <!-- المحتوى -->
+      <main>
+        <div class="card box">
+          <div class="status">تم إلغاء الموعد</div>
+
+          <div class="big" id="canceledTime">—</div>
+          <div class="muted" id="canceledDate">—</div>
+
+          <div class="hr"></div>
+
+          <div class="row" style="gap:12px;flex-wrap:wrap">
+            <button class="btn btn-dark" id="bookAgain">حجز موعد جديد</button>
+            <button class="btn btn-light" id="backHome">رجوع للرئيسية</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- السايدبار الموحد -->
+      <aside>
+        <div class="card brand-card" style="margin-bottom:14px">
+          <div style="flex:1">
+            <h3 class="name">BONITA TOUCH</h3>
+            <div class="meta">النعيم، جدة</div>
+          </div>
+        <img class="thumb"
+             src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg?class=thumb"
+             alt="">
+        </div>
+
+        <div class="card box">
+          <div class="muted" style="margin-bottom:8px">آخر حجز مُلغى</div>
+          <div class="row-between" style="padding:6px 0">
+            <span id="serviceName">—</span>
+            <span id="servicePrice">—</span>
+          </div>
+          <div class="hr"></div>
+          <div class="row-between">
+            <span class="muted">التاريخ</span>
+            <span id="sideDate">—</span>
+          </div>
+          <div class="row-between" style="margin-top:6px">
+            <span class="muted">الوقت</span>
+            <span id="sideTime">—</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // حمّلي ملخص آخر حجز قبل حذفه (لو موجود)
+    let booking = {};
+    try { booking = JSON.parse(localStorage.getItem('booking')||'{}'); } catch(e){ booking = {}; }
+
+    // أعرضي التفاصيل إن وجدت
+    const serviceName = document.getElementById('serviceName');
+    const servicePrice = document.getElementById('servicePrice');
+    const sideDate = document.getElementById('sideDate');
+    const sideTime = document.getElementById('sideTime');
+    const canceledDate = document.getElementById('canceledDate');
+    const canceledTime = document.getElementById('canceledTime');
+
+    const firstItem = booking?.items?.[0] || {};
+    serviceName.textContent = firstItem.title || firstItem.name || 'خدمة';
+    servicePrice.textContent = firstItem.price ? (firstItem.price + ' ر.س') : (booking.total ? booking.total + ' ر.س' : '—');
+
+    sideDate.textContent = booking.date || '—';
+    sideTime.textContent = booking.time || '—';
+    canceledDate.textContent = booking.date ? `تم إلغاء موعد يوم ${booking.date}` : '';
+    canceledTime.textContent = booking.time ? `الساعة ${booking.time}` : '';
+
+    // بعد القراءة، امسحي بيانات الحجز
+    localStorage.removeItem('booking');
+
+    // أزرار
+    document.getElementById('bookAgain').addEventListener('click', ()=>{
+      // اذهبي لصفحة الخدمات لتختار من جديد
+      window.location.href = 'services.html';
+    });
+    document.getElementById('backHome').addEventListener('click', ()=>{
+      window.location.href = 'home.html';
+    });
+  </script>
+</body>
+</html>

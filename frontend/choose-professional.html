@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>اختيار المحترفين — BONITA TOUCH</title>
+  <style>
+    :root{
+      --bg:#fafafa; --card:#fff; --line:#ececec; --fg:#111; --muted:#666;
+      --accent:#6f4ef6; --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
+    a{text-decoration:none;color:inherit}
+
+    .page{max-width:1180px;margin:40px auto;padding:0 16px}
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      grid-template-areas: "main aside";
+      gap:24px;align-items:start
+    }
+    main{grid-area: main}
+    aside{grid-area: aside}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .brand-card{display:flex;align-items:center;gap:14px;padding:16px}
+    .brand-card .thumb{width:100px;height:100px;border-radius:20px;object-fit:cover;box-shadow:var(--shadow)}
+    .brand-card .name{font-size:22px;font-weight:900;margin:0}
+    .brand-card .meta{color:var(--muted);margin-top:6px}
+
+    .box{padding:18px}
+    .sel-line{display:flex;gap:8px;align-items:flex-start;padding:10px;border-radius:12px;background:#faf7ff;border:1px dashed #e9e9ff}
+    .sel-line .title{font-weight:800}
+    .sel-line .price{margin-inline-start:auto;font-weight:900}
+    .detail{font-size:12px;color:#777}
+    .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:12px 0}
+    .total{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+    .btn-primary{width:100%;margin-top:12px;appearance:none;border:0;border-radius:14px;padding:14px 16px;background:#111;color:#fff;font-weight:800;cursor:pointer}
+    .btn-primary:hover{filter:brightness(.95)}
+
+    .assigned{display:grid;gap:8px}
+    .chip{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+    .chip strong{margin-inline-start:auto}
+
+    .header-title{font-size:38px;font-weight:900;margin:8px 0 12px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .tab{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:700}
+    .tab.active{background:#f3f0ff;border-color:#e0d6ff}
+
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:18px}
+    .pro{padding:22px;text-align:center;border:1px solid var(--line);border-radius:18px;background:#fff;cursor:pointer;transition:.15s}
+    .pro:hover{transform:translateY(-2px)}
+    .pro.selected{outline:2px solid #cabafc;box-shadow:0 8px 24px rgba(111,78,246,.14)}
+    .avatar{width:70px;height:70px;border-radius:50%;object-fit:cover;display:grid;place-items:center;margin:0 auto 10px;background:#f1f1f1;font-weight:900;font-size:28px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f3f0ff;border:1px solid #e5ddff;font-size:13px;font-weight:700}
+    .name{margin-top:6px;font-weight:900}
+    .role{font-size:12px;color:var(--muted)}
+
+    .loading{text-align:center;padding:40px;color:var(--muted)}
+
+    @media (max-width:1024px){
+      .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
+      .layout{grid-template-columns:1fr;grid-template-areas:"aside" "main"}
+    }
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="layout">
+      <main>
+        <div class="header-title">اختيار المحترفين</div>
+
+        <div class="filters">
+          <button class="tab active" data-filter="all">الكل</button>
+          <button class="tab" data-filter="أظافر">أظافر</button>
+          <button class="tab" data-filter="شعر">شعر</button>
+          <button class="tab" data-filter="ميكب">ميكب</button>
+        </div>
+
+        <div class="grid" id="pros">
+          <div class="loading">جاري تحميل المحترفات...</div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card brand-card" style="margin-bottom:14px">
+          <div style="flex:1">
+            <h3 class="name">BONITA TOUCH</h3>
+            <div class="meta">النعيم، جدة</div>
+          </div>
+          <img class="thumb"
+               src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg?class=thumb"
+               alt="صورة الصالون">
+        </div>
+
+        <div class="card box">
+          <div id="selection"></div>
+          <div class="hr"></div>
+          <div class="assigned" id="assigned"></div>
+          <div class="hr"></div>
+          <div class="total">
+            <div>الإجمالي</div>
+            <div id="total">0 ر.س</div>
+          </div>
+          <button class="btn-primary" id="go-time">المتابعة</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+    const selWrap = document.getElementById('selection');
+    const totalEl = document.getElementById('total');
+    const assignedBox = document.getElementById('assigned');
+    const grid = document.getElementById('pros');
+
+    const cart = JSON.parse(sessionStorage.getItem('cart') || '{"items":[],"total":0}');
+    
+    const categories = ['أظافر','شعر','ميكب'];
+    const selectedByCat = { 'أظافر':null, 'شعر':null, 'ميكب':null };
+
+    // جلب المحترفات من API
+    async function loadProfessionals() {
+      try {
+        const response = await fetch(`${API_URL}/professionals`);
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error('فشل تحميل المحترفات');
+        }
+
+        renderProfessionals(result.data);
+      } catch (error) {
+        console.error('خطأ في تحميل المحترفات:', error);
+        grid.innerHTML = '<div class="loading" style="color:red">حدث خطأ في تحميل المحترفات</div>';
+      }
+    }
+
+    // عرض المحترفات
+    function renderProfessionals(professionals) {
+      grid.innerHTML = '';
+
+      professionals.forEach(prof => {
+        const card = document.createElement('div');
+        card.className = 'pro';
+        card.dataset.id = prof.id;
+        card.dataset.name = `${prof.name} | ${prof.name_en}`;
+        card.dataset.rating = prof.rating || '—';
+        card.dataset.specialties = prof.specialties;
+
+        // الحرف الأول من الاسم
+        const initial = prof.name.charAt(0);
+        
+        // الأيقونة حسب التخصص
+        let icon = '👥';
+        if (prof.specialties.includes('أظافر')) icon = '💅';
+        else if (prof.specialties.includes('شعر')) icon = '💇‍♀️';
+        else if (prof.specialties.includes('ميكب')) icon = '💄';
+
+        const ratingBadge = prof.rating ? `⭐ ${prof.rating}` : '⭐ —';
+
+        card.innerHTML = `
+          <div class="avatar">${prof.id === 1 ? icon : initial}</div>
+          <div class="badge">${prof.id === 1 ? 'أي محترف' : ratingBadge}</div>
+          <div class="name">${prof.name} | ${prof.name_en}</div>
+          <div class="role">${prof.specialties}</div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      // إضافة event listeners
+      setupFilters();
+      setupSelection();
+    }
+
+    // إعداد الفلاتر
+    function setupFilters() {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => {
+        t.addEventListener('click', () => {
+          tabs.forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          const filter = t.dataset.filter;
+          
+          grid.querySelectorAll('.pro').forEach(card => {
+            const specs = card.dataset.specialties;
+            const show = (filter === 'all') || specs.includes(filter) || specs.includes('أظافر، شعر، ميكب');
+            card.style.display = show ? '' : 'none';
+          });
+        });
+      });
+    }
+
+    // إعداد الاختيار
+    function setupSelection() {
+      grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.pro');
+        if (!card) return;
+
+        const data = {
+          id: Number(card.dataset.id),
+          name: card.dataset.name,
+          rating: card.dataset.rating,
+          specialties: card.dataset.specialties
+        };
+
+        // جمع الأقسام الموجودة في السلة
+        const categoriesInCart = [...new Set(cart.items.map(item => item.category).filter(Boolean))];
+
+        // إذا كان "أي محترف" - اختاره لكل الأقسام الموجودة في السلة فقط
+        if (data.specialties.includes('أظافر، شعر، ميكب')) {
+          categoriesInCart.forEach(cat => {
+            selectedByCat[cat] = data;
+          });
+        } else {
+          // تحقق: هل المحترفة متخصصة في أقسام موجودة في السلة؟
+          const profCategories = categories.filter(cat => data.specialties.includes(cat));
+          const relevantCategories = profCategories.filter(cat => categoriesInCart.includes(cat));
+
+          if (relevantCategories.length === 0) {
+            // المحترفة مو متخصصة في أي قسم موجود في السلة
+            const catIcons = {
+              'أظافر': '💅',
+              'شعر': '💇‍♀️',
+              'ميكب': '💄'
+            };
+            
+            const profCat = profCategories[0] || 'هذا القسم';
+            const icon = catIcons[profCat] || '';
+            
+            alert(`⚠️ لا توجد لديك خدمة من قسم ${icon} ${profCat}`);
+            return;
+          }
+
+          // اختيار المحترفة للأقسام المناسبة فقط
+          relevantCategories.forEach(cat => {
+            selectedByCat[cat] = data;
+          });
+        }
+
+        renderAssigned();
+        refreshSelectionsUI();
+      });
+    }
+
+    function renderSummary(){
+      selWrap.innerHTML = '';
+      if(!cart.items.length){
+        const info = document.createElement('div');
+        info.textContent = 'لم يتم تحديد خدمات بعد.';
+        info.style.color = '#777';
+        selWrap.appendChild(info);
+      }else{
+        cart.items.forEach(it=>{
+          const line = document.createElement('div');
+          line.className = 'sel-line';
+          line.innerHTML = `
+            <div>
+              <div class="title">${it.name}</div>
+              <div class="detail">${it.details || ''}</div>
+            </div>
+            <div class="price">${it.price} ر.س</div>
+          `;
+          selWrap.appendChild(line);
+        });
+      }
+      totalEl.textContent = (cart.total||0) + ' ر.س';
+    }
+
+    function renderAssigned(){
+      assignedBox.innerHTML = '';
+      categories.forEach(cat=>{
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        const sel = selectedByCat[cat];
+        chip.innerHTML = `
+          <span style="font-weight:800">${cat}</span>
+          <span style="color:#777">${sel ? sel.name : 'غير معيّن'}</span>
+          <strong>${sel ? (sel.rating && sel.rating!=='—' ? `⭐ ${sel.rating}` : '') : ''}</strong>
+        `;
+        assignedBox.appendChild(chip);
+      });
+    }
+
+    function refreshSelectionsUI(){
+      grid.querySelectorAll('.pro').forEach(c=>c.classList.remove('selected'));
+      categories.forEach(cat=>{
+        const sel = selectedByCat[cat];
+        if(sel){
+          const el = grid.querySelector(`.pro[data-id="${sel.id}"]`);
+          if(el) el.classList.add('selected');
+        }
+      });
+    }
+
+    document.getElementById('go-time').addEventListener('click', ()=>{
+      if(!cart.items.length){ 
+        alert('أضيفي خدمة أولاً'); 
+        return; 
+      }
+      
+      // جمع الأقسام الموجودة في السلة
+      const categoriesInCart = [...new Set(cart.items.map(item => item.category).filter(Boolean))];
+      
+      if(categoriesInCart.length === 0){
+        // لو ما فيه تصنيف، خليها تختار أي محترفة
+        const hasSelection = Object.values(selectedByCat).some(v => v !== null);
+        if(!hasSelection){
+          alert('اختاري محترفة واحدة على الأقل');
+          return;
+        }
+      } else {
+        // تحقق من اختيار محترفة لكل قسم موجود في السلة
+        const missingCategories = categoriesInCart.filter(cat => !selectedByCat[cat]);
+        
+        if(missingCategories.length > 0){
+          const catNames = missingCategories.join('، ');
+          alert(`يرجى اختيار محترفة لقسم: ${catNames}`);
+          return;
+        }
+      }
+
+      sessionStorage.setItem('prosByCategory', JSON.stringify(selectedByCat));
+      window.location.href = 'time.html';
+    });
+
+    // تحميل البيانات
+    loadProfessionals();
+    renderSummary();
+    renderAssigned();
+  </script>
+</body>
+</html>
