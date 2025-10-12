@@ -105,10 +105,10 @@ router.get('/available-slots', (req, res, next) => {
 
     // كل الأوقات المتاحة في اليوم
     const allSlots = [
-      '10:30 ص', '11:00 ص', '11:30 ص',
-      '12:00 م', '12:15 م', '12:45 م',
-      '1:00 م', '1:30 م', '1:45 م', '2:00 م',
-      '2:30 م', '3:00 م', '3:30 م', '4:00 م'
+      '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+      '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+      '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+      '18:00', '18:30', '19:00', '19:30', '20:00'
     ];
 
     // جلب الحجوزات الموجودة
@@ -337,6 +337,47 @@ router.post('/bookings', (req, res, next) => {
     });
   } catch (err) {
     console.error('❌ خطأ في الحجز:', err);
+    next(err);
+  }
+});
+
+/**
+ * DELETE /api/bookings/:id
+ * إلغاء حجز
+ */
+router.delete('/bookings/:id', (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'معرّف الحجز مطلوب'
+      });
+    }
+
+    // تحديث حالة الحجز إلى ملغي
+    const result = db.prepare(`
+      UPDATE bookings 
+      SET status = 'cancelled'
+      WHERE id = ?
+    `).run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'الحجز غير موجود'
+      });
+    }
+
+    console.log(`🗑️ تم إلغاء الحجز #${id}`);
+
+    res.json({ 
+      success: true, 
+      message: 'تم إلغاء الحجز بنجاح' 
+    });
+  } catch (err) {
+    console.error('❌ خطأ في إلغاء الحجز:', err);
     next(err);
   }
 });

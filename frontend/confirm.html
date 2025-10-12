@@ -16,7 +16,6 @@
 
     .page{max-width:1180px;margin:0 auto;padding:0 16px 40px}
 
-    /* بطل بصورة الصالون */
     .hero{
       position:relative; overflow:hidden; border-radius:0 0 24px 24px;
       height:280px; background:#ddd;
@@ -29,7 +28,6 @@
       letter-spacing:.5px;
     }
 
-    /* التخطيط: المحتوى يسار، السايدبار يمين */
     .layout{
       display:grid; grid-template-columns: 1fr 340px; grid-template-areas:"main aside";
       gap:24px; align-items:start; margin-top:24px;
@@ -57,13 +55,11 @@
     .btn-danger{background:var(--danger);color:#fff}
     .btn-ghost{background:#f5f2ff;border:1px solid #e7e1ff;color:#4b3fd6}
 
-    /* السايدبار */
     .brand-card{display:flex;align-items:center;gap:14px;padding:16px}
     .brand-card .thumb{width:100px;height:100px;border-radius:20px;object-fit:cover;box-shadow:var(--shadow)}
     .brand-card .name{font-size:22px;font-weight:900;margin:0}
     .brand-card .meta{color:var(--muted);margin-top:6px}
 
-    /* مودال */
     .modal{
       position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); padding:16px; z-index:40;
     }
@@ -73,17 +69,6 @@
     .sheet-body{padding:18px}
     .close-x{inline-size:36px;block-size:36px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer}
 
-    /* مُنتقي الوقت المصغّر داخل المودال (موجود احتياطاً) */
-    .days{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 16px}
-    .day{min-width:74px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer}
-    .day .dow{font-size:12px;color:var(--muted)}
-    .day .dn{font-weight:800}
-    .day.is-active{border-color:var(--accent);background:#f5f2ff}
-    .slots{display:flex;flex-direction:column;gap:12px}
-    .slot{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fff}
-    .slot.is-active{border-color:var(--accent);background:#f5f2ff}
-
-    /* أزرار الإجراءات الرئيسية */
     .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .actions .btn{min-width:180px}
     @media (max-width:520px){ .actions{justify-content:stretch} .actions .btn{flex:1} }
@@ -95,7 +80,6 @@
 </head>
 <body>
 
-  <!-- صورة الصالون -->
   <div class="hero">
     <img src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg" alt="">
     <div class="brand">BONITA TOUCH</div>
@@ -104,7 +88,6 @@
   <div class="page">
     <div class="layout">
 
-      <!-- المحتوى -->
       <main>
         <div class="card box">
           <div class="row" style="justify-content:space-between">
@@ -117,7 +100,6 @@
 
           <div class="hr"></div>
 
-          <!-- الإجراءات -->
           <div class="actions">
             <button class="btn btn-ghost" id="editBtn">تعديل الموعد</button>
             <button class="btn btn-danger" id="cancelBtn">إلغاء الموعد</button>
@@ -125,7 +107,6 @@
         </div>
       </main>
 
-      <!-- السايدبار -->
       <aside>
         <div class="card brand-card" style="margin-bottom:14px">
           <div style="flex:1">
@@ -167,7 +148,6 @@
     </div>
   </div>
 
-  <!-- مودال تأكيد الإلغاء -->
   <div class="modal" id="cancelModal" aria-hidden="true">
     <div class="sheet" style="max-width:560px">
       <div class="sheet-head">
@@ -188,7 +168,6 @@
   </div>
 
   <script>
-    /* ================== تحميل بيانات الحجز ================== */
     let booking = {};
     try { booking = JSON.parse(localStorage.getItem('booking')||'{}'); } catch(e){ booking = {}; }
 
@@ -225,7 +204,6 @@
     }
     render();
 
-    /* ============== أدوات تنقّل مضمونة ============== */
     function go(href, {replace=false} = {}) {
       const url = href.startsWith('./') || href.startsWith('../') ? href : './' + href;
       fetch(url, { method: 'HEAD' })
@@ -236,8 +214,6 @@
         });
     }
 
-    /* ============== أزرار الأكشن ============== */
-    // تعديل الموعد: ارجعي لمسار الحجز (الخدمات → المحترفون → الوقت)
     document.getElementById('editBtn').addEventListener('click', (e) => {
       e.preventDefault();
       try {
@@ -279,26 +255,50 @@
         console.warn('Edit flow error:', err);
       }
 
-      // ✳️ عدّلي الاسم لو صفحتك اسمها مختلف أو في مجلد آخر
       go('services.html');
     });
 
-    // فتح مودال الإلغاء
     document.getElementById('cancelBtn').addEventListener('click',()=>{
       document.getElementById('cancelModal').classList.add('show');
     });
-    // إغلاق المودالات
+    
     document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',e=>{
       e.target.closest('.modal').classList.remove('show');
     }));
-    // تأكيد الإلغاء → صفحة تم الإلغاء
-    document.getElementById('confirmCancel').addEventListener('click',(e)=>{
+    
+    // ✅ تأكيد الإلغاء → حذف من قاعدة البيانات
+    document.getElementById('confirmCancel').addEventListener('click', async (e)=>{
       e.preventDefault();
-      try { localStorage.removeItem('booking'); } catch {}
-      go('canceled.html', { replace:true });
+      
+      const bookingId = booking.booking_id;
+      
+      if (!bookingId) {
+        alert('لا يوجد رقم حجز للإلغاء');
+        localStorage.removeItem('booking');
+        go('canceled.html', { replace: true });
+        return;
+      }
+      
+      try {
+        const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('✅ تم إلغاء الحجز من قاعدة البيانات');
+          localStorage.removeItem('booking');
+          go('canceled.html', { replace: true });
+        } else {
+          throw new Error(result.error || 'فشل الإلغاء');
+        }
+      } catch (error) {
+        console.error('❌ خطأ في الإلغاء:', error);
+        alert('حدث خطأ أثناء إلغاء الحجز: ' + error.message);
+      }
     });
 
-    // زر الرجوع للرئيسية (لو عندك home.html)
     document.getElementById('backHome').addEventListener('click',()=>{
       go('home.html');
     });
