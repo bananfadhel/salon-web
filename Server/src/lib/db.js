@@ -1,4 +1,4 @@
-// server/src/lib/db.js
+// Server/src/lib/db.js
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,14 +6,21 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// نحفظ قاعدة البيانات في ملف داخل مجلد server
-const DB_PATH = path.join(__dirname, '..', '..', 'salon.db');
+// مسار قاعدة البيانات
+const DB_PATH = path.resolve(__dirname, '../../salon.db');
+
+console.log('📊 Database path:', DB_PATH);
 
 // إنشاء اتصال بقاعدة البيانات
 export const db = new Database(DB_PATH);
 
-// إنشاء الجداول عند أول تشغيل
+// تفعيل Foreign Keys
+db.pragma('foreign_keys = ON');
+
+// إنشاء الجداول
 export function initDb() {
+  console.log('📊 جاري إنشاء قاعدة البيانات...');
+
   // جدول الخدمات
   db.exec(`
     CREATE TABLE IF NOT EXISTS services (
@@ -22,11 +29,11 @@ export function initDb() {
       price INTEGER NOT NULL DEFAULT 0,
       minutes INTEGER NOT NULL DEFAULT 45,
       description TEXT,
-      category TEXT
+      category TEXT NOT NULL
     )
   `);
 
-  // جدول المحترفين/الموظفين
+  // جدول المحترفات
   db.exec(`
     CREATE TABLE IF NOT EXISTS professionals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +52,7 @@ export function initDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       customer_name TEXT NOT NULL,
       contact_method TEXT,
-      contact_value TEXT,
+      contact_value TEXT NOT NULL,
       date_iso TEXT NOT NULL,
       date_display TEXT,
       time_str TEXT NOT NULL,
@@ -58,7 +65,7 @@ export function initDb() {
     )
   `);
 
-  // جدول عناصر الحجز (الخدمات المختارة)
+  // جدول عناصر الحجز
   db.exec(`
     CREATE TABLE IF NOT EXISTS booking_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,8 +86,12 @@ export function initDb() {
   console.log('✅ تم إنشاء الجداول بنجاح');
 }
 
-// إغلاق قاعدة البيانات عند إيقاف التطبيق
-process.on('exit', () => db.close());
-process.on('SIGHUP', () => process.exit(128 + 1));
-process.on('SIGINT', () => process.exit(128 + 2));
-process.on('SIGTERM', () => process.exit(128 + 15));
+// إغلاق قاعدة البيانات
+const closeDb = () => {
+  console.log('🔒 جاري إغلاق قاعدة البيانات...');
+  db.close();
+};
+
+process.on('exit', closeDb);
+process.on('SIGINT', () => process.exit(0));
+process.on('SIGTERM', () => process.exit(0));

@@ -1,16 +1,20 @@
-// Server/seed-complete.js
-import { db } from './src/lib/db.js';
+// Server/seed.js
+import { db } from './src/lib/db.js';  // ✅ صحيح
 
 console.log('🌱 بدء إضافة بيانات صالون BONITA TOUCH...\n');
 
+// ========================================
 // مسح البيانات القديمة
+// ========================================
 db.prepare('DELETE FROM booking_items').run();
 db.prepare('DELETE FROM bookings').run();
 db.prepare('DELETE FROM services').run();
 db.prepare('DELETE FROM professionals').run();
 console.log('✅ تم مسح البيانات القديمة\n');
 
-// ========== إضافة الخدمات ==========
+// ========================================
+// إضافة الخدمات
+// ========================================
 console.log('📝 إضافة خدمات الصالون...\n');
 
 const services = [
@@ -39,68 +43,28 @@ services.forEach((service, index) => {
 
 console.log(`\n🎉 تم إضافة ${services.length} خدمة بنجاح!\n`);
 
-// ========== إضافة المحترفات ==========
+// ========================================
+// إضافة المحترفات
+// ========================================
 console.log('👩‍💼 إضافة المحترفات...\n');
 
 const professionals = [
   // عام
-  {
-    name: 'أي محترف',
-    name_en: 'Any Specialist',
-    specialties: 'أظافر، شعر، ميكب',
-    rating: null,
-  },
+  { name: 'أي محترف', name_en: 'Any Specialist', specialties: 'أظافر، شعر، ميكب', rating: null },
+  
   // أظافر
-  {
-    name: 'جنا',
-    name_en: 'Jana',
-    specialties: 'أظافر',
-    rating: 4.9,
-  },
-  {
-    name: 'ليا',
-    name_en: 'Lea',
-    specialties: 'أظافر',
-    rating: 4.4,
-  },
-  {
-    name: 'سالي',
-    name_en: 'Sally',
-    specialties: 'أظافر',
-    rating: 4.8,
-  },
+  { name: 'جنا', name_en: 'Jana', specialties: 'أظافر', rating: 4.9 },
+  { name: 'ليا', name_en: 'Lea', specialties: 'أظافر', rating: 4.4 },
+  { name: 'سالي', name_en: 'Sally', specialties: 'أظافر', rating: 4.8 },
+  
   // شعر
-  {
-    name: 'ريان',
-    name_en: 'Reen',
-    specialties: 'شعر',
-    rating: 4.9,
-  },
-  {
-    name: 'جي جي',
-    name_en: 'JaJa',
-    specialties: 'شعر',
-    rating: 5.0,
-  },
+  { name: 'ريان', name_en: 'Reen', specialties: 'شعر', rating: 4.9 },
+  { name: 'جي جي', name_en: 'JaJa', specialties: 'شعر', rating: 5.0 },
+  
   // ميكب
-  {
-    name: 'كارول',
-    name_en: 'Carol',
-    specialties: 'ميكب',
-    rating: 4.8,
-  },
-  {
-    name: 'جوسي',
-    name_en: 'Josie',
-    specialties: 'ميكب',
-    rating: null,
-  },
-  {
-    name: 'هايرا',
-    name_en: 'Haira',
-    specialties: 'ميكب',
-    rating: 5.0,
-  },
+  { name: 'كارول', name_en: 'Carol', specialties: 'ميكب', rating: 4.8 },
+  { name: 'جوسي', name_en: 'Josie', specialties: 'ميكب', rating: null },
+  { name: 'هايرا', name_en: 'Haira', specialties: 'ميكب', rating: 5.0 },
 ];
 
 const insertProfessional = db.prepare(
@@ -115,7 +79,9 @@ professionals.forEach((prof, index) => {
 
 console.log(`\n🎉 تم إضافة ${professionals.length} محترفة بنجاح!\n`);
 
-// ========== إضافة حجز تجريبي ==========
+// ========================================
+// إضافة حجز تجريبي (اختياري)
+// ========================================
 console.log('📅 إضافة حجز تجريبي...\n');
 
 const insertBooking = db.prepare(`
@@ -130,8 +96,8 @@ const booking = insertBooking.run(
   '0501234567',
   '2025-10-15',
   'السبت 11 ربيع الآخر',
-  '12:15 م',
-  3,
+  '12:15',
+  2,
   'ليا | Lea',
   300,
   'confirmed'
@@ -139,10 +105,10 @@ const booking = insertBooking.run(
 
 const bookingId = booking.lastInsertRowid;
 
-// إضافة تفاصيل الحجز (خدمتين: استشوار + تسريحة)
+// إضافة تفاصيل الحجز
 const insertBookingItem = db.prepare(`
   INSERT INTO booking_items 
-  (booking_id, service_id, service_name, price, minutes, professional_id, professional_name)
+  (booking_id, service_id, service_name, price,minutes, professional_id, professional_name)
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `);
 
@@ -151,7 +117,9 @@ insertBookingItem.run(bookingId, 5, 'تسريحة', 200, 52, 5, 'ريان | Reen
 
 console.log('   ✅ تم إضافة حجز تجريبي لـ نورة أحمد (استشوار + تسريحة)\n');
 
-// ========== عرض ملخص ==========
+// ========================================
+// عرض ملخص
+// ========================================
 console.log('═'.repeat(70));
 console.log('💅 BONITA TOUCH - النعيم، جدة');
 console.log('═'.repeat(70));

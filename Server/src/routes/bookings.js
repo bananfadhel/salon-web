@@ -1,11 +1,12 @@
+// server/src/routes/bookings.js
 import { Router } from 'express';
 import { db } from '../lib/db.js';
 
 const router = Router();
 
-/**
- * GET /api/services
- */
+// ========================================
+// GET /api/services - جلب جميع الخدمات
+// ========================================
 router.get('/services', (req, res, next) => {
   try {
     const services = db.prepare(`
@@ -20,9 +21,9 @@ router.get('/services', (req, res, next) => {
   }
 });
 
-/**
- * GET /api/professionals
- */
+// ========================================
+// GET /api/professionals - جلب جميع المحترفات
+// ========================================
 router.get('/professionals', (req, res, next) => {
   try {
     const professionals = db.prepare(`
@@ -37,9 +38,9 @@ router.get('/professionals', (req, res, next) => {
   }
 });
 
-/**
- * GET /api/bookings
- */
+// ========================================
+// GET /api/bookings - جلب جميع الحجوزات
+// ========================================
 router.get('/bookings', (req, res, next) => {
   try {
     const bookings = db.prepare(`
@@ -49,13 +50,14 @@ router.get('/bookings', (req, res, next) => {
         professional_id, professional_name,
         total, status, created_at
       FROM bookings
+      WHERE status = 'confirmed'
       ORDER BY created_at DESC
       LIMIT 50
     `).all();
 
     const data = bookings.map(booking => {
       const items = db.prepare(`
-        SELECT service_id, service_name, price, minutes, 
+        SELECT id, service_id, service_name, price, minutes, 
                professional_id, professional_name, details
         FROM booking_items
         WHERE booking_id = ?
@@ -88,10 +90,9 @@ router.get('/bookings', (req, res, next) => {
   }
 });
 
-/**
- * GET /api/available-slots
- * يرجع الأوقات المتاحة ليوم محدد
- */
+// ========================================
+// GET /api/available-slots - الأوقات المتاحة
+// ========================================
 router.get('/available-slots', (req, res, next) => {
   try {
     const { date, professionalId } = req.query;
@@ -121,7 +122,7 @@ router.get('/available-slots', (req, res, next) => {
     
     const params = [date];
 
-    // لو محددة محترفة، نتحقق من الأوقات المشغولة لها فقط
+    // لو محددة محترفة معينة
     if (professionalId && professionalId !== '1') {
       query += ` AND professional_id = ?`;
       params.push(professionalId);
@@ -130,7 +131,7 @@ router.get('/available-slots', (req, res, next) => {
     const bookedSlots = db.prepare(query).all(...params);
     const bookedTimes = bookedSlots.map(b => b.time_str);
 
-    // الأوقات المتاحة = كل الأوقات - الأوقات المحجوزة
+    // الأوقات المتاحة = كل الأوقات - المحجوزة
     const availableSlots = allSlots.filter(slot => !bookedTimes.includes(slot));
 
     res.json({ 
@@ -146,75 +147,14 @@ router.get('/available-slots', (req, res, next) => {
   }
 });
 
-/**
- * GET /api/check-availability
- * يتحقق من توفر محترفة في وقت محدد
- */
-router.get('/check-availability', (req, res, next) => {
-  try {
-    const { date, time, professionalId, contact } = req.query;
-
-    const checks = {
-      professionalAvailable: true,
-      customerAvailable: true,
-      message: 'الموعد متاح'
-    };
-
-    // تحقق من المحترفة
-    if (professionalId && professionalId !== '1') {
-      const professionalBusy = db.prepare(`
-        SELECT id FROM bookings
-        WHERE professional_id = ?
-          AND date_iso = ?
-          AND time_str = ?
-          AND status = 'confirmed'
-      `).get(professionalId, date, time);
-
-      if (professionalBusy) {
-        checks.professionalAvailable = false;
-        checks.message = 'المحترفة محجوزة في هذا الوقت';
-      }
-    }
-
-    // تحقق من العميل
-    if (contact) {
-      const customerBusy = db.prepare(`
-        SELECT id FROM bookings
-        WHERE contact_value = ?
-          AND date_iso = ?
-          AND time_str = ?
-          AND status = 'confirmed'
-      `).get(contact, date, time);
-
-      if (customerBusy) {
-        checks.customerAvailable = false;
-        checks.message = 'لديك حجز في هذا الوقت';
-      }
-    }
-
-    const available = checks.professionalAvailable && checks.customerAvailable;
-
-    res.json({ 
-      success: true,
-      available,
-      ...checks
-    });
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * POST /api/bookings
- * حفظ الحجز مع 3 فحوصات بسيطة فقط
- */
+// ========================================
+// POST /api/bookings - إنشاء حجز جديد
+// ========================================
 router.post('/bookings', (req, res, next) => {
   try {
     const payload = req.body ?? {};
     
-    // ========================================
-    // 1. التحقق من البيانات الأساسية
-    // ========================================
+    // التحقق من البيانات الأساسية
     if (!payload.customer_name?.trim()) {
       return res.status(400).json({ 
         success: false, 
@@ -238,9 +178,7 @@ router.post('/bookings', (req, res, next) => {
 
     const cleanContact = payload.contact.value.trim().replace(/[\s-]/g, '');
 
-    // ========================================
-    // 2. ربط الجوال بالاسم (قيد واحد مهم)
-    // ========================================
+    // ربط الجوال بالاسم (قيد واحد مهم)
     const existingCustomer = db.prepare(`
       SELECT DISTINCT customer_name 
       FROM bookings 
@@ -261,9 +199,7 @@ router.post('/bookings', (req, res, next) => {
       }
     }
 
-    // ========================================
-    // 3. منع التكرار البسيط
-    // ========================================
+    // منع التكرار البسيط
     const duplicate = db.prepare(`
       SELECT id FROM bookings 
       WHERE contact_value = ? 
@@ -279,9 +215,7 @@ router.post('/bookings', (req, res, next) => {
       });
     }
 
-    // ========================================
-    // ✅ حفظ الحجز
-    // ========================================
+    // حفظ الحجز
     const insertBooking = db.prepare(`
       INSERT INTO bookings
         (customer_name, contact_method, contact_value, 
@@ -341,10 +275,81 @@ router.post('/bookings', (req, res, next) => {
   }
 });
 
-/**
- * DELETE /api/bookings/:id
- * إلغاء حجز
- */
+// ========================================
+// DELETE /api/bookings/:id/items/:itemId - حذف خدمة واحدة
+// ========================================
+router.delete('/bookings/:id/items/:itemId', (req, res, next) => {
+  try {
+    const { id, itemId } = req.params;
+    
+    if (!id || !itemId) {
+      return res.status(400).json({
+        success: false,
+        error: 'معرّف الحجز والخدمة مطلوبان'
+      });
+    }
+
+    // التحقق من وجود الحجز
+    const booking = db.prepare('SELECT id, total, status FROM bookings WHERE id = ?').get(id);
+    
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        error: 'الحجز غير موجود'
+      });
+    }
+    
+    // التحقق من حالة الحجز
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        error: 'لا يمكن تعديل حجز ملغي'
+      });
+    }
+
+    // جلب جميع الخدمات في الحجز
+    const items = db.prepare('SELECT * FROM booking_items WHERE booking_id = ?').all(id);
+    
+    if (items.length <= 1) {
+      return res.status(400).json({
+        success: false,
+        error: 'لا يمكن حذف الخدمة الوحيدة. قومي بإلغاء الحجز بالكامل بدلاً من ذلك.'
+      });
+    }
+
+    // حذف الخدمة باستخدام ID الحقيقي
+    const itemToDelete = db.prepare('SELECT * FROM booking_items WHERE id = ? AND booking_id = ?').get(itemId, id);
+    
+    if (!itemToDelete) {
+      return res.status(404).json({
+        success: false,
+        error: 'الخدمة غير موجودة'
+      });
+    }
+
+    // حذف الخدمة
+    db.prepare('DELETE FROM booking_items WHERE id = ?').run(itemId);
+
+    // تحديث الإجمالي
+    const newTotal = booking.total - (itemToDelete.price || 0);
+    db.prepare('UPDATE bookings SET total = ? WHERE id = ?').run(newTotal, id);
+
+    console.log(`🗑️ تم حذف خدمة من الحجز #${id}`);
+
+    res.json({ 
+      success: true, 
+      message: 'تم حذف الخدمة بنجاح',
+      newTotal: newTotal
+    });
+  } catch (err) {
+    console.error('❌ خطأ في حذف الخدمة:', err);
+    next(err);
+  }
+});
+
+// ========================================
+// DELETE /api/bookings/:id - إلغاء حجز كامل
+// ========================================
 router.delete('/bookings/:id', (req, res, next) => {
   try {
     const { id } = req.params;

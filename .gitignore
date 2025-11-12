@@ -1,33 +1,64 @@
-# Ignore node_modules
+# Dependencies
 node_modules/
+package-lock.json
 
-# Ignore database files
-*.db
-Server/salon.db
+# Environment variables (حساسة!)
+.env
+.env.local
+.env.production
+.env.*.local
 
-# Ignore log files
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
 
-# Ignore environment variables
-.env
-.env.local
-
-# Ignore OS files
+# OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Ignore build outputs
-dist/
-build/
-
-# Ignore IDE/editor files
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Ignore yarn/pnpm lock files
-yarn.lock
-pnpm-lock.yaml
+# Build
+dist/
+build/
+.cache/
+out/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.eslintcache
+.stylelintcache
+*.seed
+*.pid
+*.pid.lock

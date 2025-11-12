@@ -1,13 +1,17 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "BONITA TOUCH Salon Booking System",
   "type": "module",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "seed": "node seed.js"
   },
+  "keywords": ["salon", "booking"],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^12.4.1",
     "cors": "^2.8.5",

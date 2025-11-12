@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لوحة التحكم — BONITA TOUCH</title>
+  <style>
+    :root{
+      --accent:#f7b7d3;
+      --accent-2:#fde3ee;
+      --text:#141414;
+      --muted:#6b6f75;
+      --bg:#fff;
+      --border:#efe8ee;
+      --radius:20px;
+      --shadow:0 18px 48px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box;margin:0}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1200px 600px at 110% -10%, var(--accent-2), transparent 60%),
+        radial-gradient(900px 500px at -10% 120%, #fdf5f9, transparent 60%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .container{width:min(500px,100%)}
+
+    .header{text-align:center; margin-bottom:40px}
+    .logo{
+      width:120px; height:120px; border-radius:24px; object-fit:cover;
+      box-shadow:0 12px 32px rgba(247,183,211,.4);
+      margin:0 auto 20px;
+      outline:4px solid #fff;
+    }
+    .title{font-size:32px; font-weight:900; margin-bottom:8px}
+    .subtitle{color:var(--muted); font-size:16px}
+
+    .options{display:grid; gap:20px}
+
+    .option-card{
+      background:#fff;
+      border:2px solid var(--border);
+      border-radius:var(--radius);
+      padding:32px;
+      text-align:center;
+      cursor:pointer;
+      transition:all .3s ease;
+      box-shadow:var(--shadow);
+    }
+    .option-card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 24px 64px rgba(0,0,0,.12);
+      border-color:var(--accent);
+    }
+
+    .option-icon{
+      font-size:56px;
+      margin-bottom:16px;
+    }
+    .option-title{
+      font-size:24px;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+    .option-desc{
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    .back-btn{
+      position:fixed;
+      top:24px;
+      left:24px;
+      padding:12px 20px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      transition:.2s;
+      box-shadow:var(--shadow);
+    }
+    .back-btn:hover{
+      background:#f9fafb;
+      transform:translateY(-2px);
+    }
+
+    @media (max-width:600px){
+      .title{font-size:26px}
+      .option-card{padding:24px}
+      .option-title{font-size:20px}
+    }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="location.href='home.html'">← رجوع للرئيسية</button>
+
+  <div class="container">
+    <div class="header">
+      <img class="logo" 
+           src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg" 
+           alt="BONITA TOUCH">
+      <div class="title">لوحة التحكم</div>
+      <div class="subtitle">اختاري نوع العرض</div>
+    </div>
+
+    <div class="options">
+      <div class="option-card" onclick="location.href='admin-staff.html'">
+        <div class="option-icon">👩‍💼</div>
+        <div class="option-title">الموظفين</div>
+        <div class="option-desc">عرض حجوزات الموظفات وتعديلها</div>
+      </div>
+
+      <div class="option-card" onclick="location.href='admin-customers.html'">
+        <div class="option-icon">👥</div>
+        <div class="option-title">العملاء</div>
+        <div class="option-desc">عرض جميع حجوزات العملاء وتعديلها</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
