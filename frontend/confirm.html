@@ -16,22 +16,34 @@
 
     .page{max-width:1180px;margin:0 auto;padding:0 16px 40px}
 
-    .hero{
-      position:relative; overflow:hidden; border-radius:0 0 24px 24px;
-      height:280px; background:#ddd;
-      box-shadow:var(--shadow);
+    .photo-slider{
+      position:relative;
+      width:100%;
+      max-width:1180px;
+      height:260px;
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:0 18px 48px rgba(0,0,0,0.08);
+      margin: 0 auto 24px auto;
+      background:#fde3ee;
     }
-    .hero img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.9)}
-    .hero .brand{
-      position:absolute; inset-inline-start:24px; inset-block-end:20px;
-      color:#fff; font-size:44px; font-weight:900; text-shadow:0 6px 20px rgba(0,0,0,.35);
-      letter-spacing:.5px;
+    .photo-slider img{
+      position:absolute;
+      width:100%;
+      height:260px;
+      object-fit:cover;
+      border-radius:24px;
+      top:0;left:0;
+      opacity:0;
+      transition:opacity 1s ease-in-out;
+    }
+    .photo-slider img.active{
+      opacity:1;
+      position:relative;
     }
 
-    .layout{
-      display:grid; grid-template-columns: 1fr 340px; grid-template-areas:"main aside";
-      gap:24px; align-items:start; margin-top:24px;
-    }
+    .hero{display:none}
+    .layout{display:grid;grid-template-columns:1fr 340px;grid-template-areas:"main aside";gap:24px;align-items:start;margin-top:24px}
     main{grid-area: main}
     aside{grid-area: aside}
 
@@ -41,10 +53,7 @@
     .row-between{display:flex;justify-content:space-between;gap:10px;align-items:center}
     .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:12px 0}
 
-    .status{
-      display:inline-flex;align-items:center;gap:10px;border:1px solid #dcfce7;background:#f0fdf4;
-      color:#166534;border-radius:999px;padding:8px 12px;font-weight:800
-    }
+    .status{display:inline-flex;align-items:center;gap:10px;border:1px solid #dcfce7;background:#f0fdf4;color:#166534;border-radius:999px;padding:8px 12px;font-weight:800}
     .big-time{font-size:32px;font-weight:900;margin:8px 0}
     .muted{color:var(--muted)}
     .pill{display:inline-block;padding:6px 10px;background:#f3f4f6;border-radius:999px;font-size:12px}
@@ -60,9 +69,7 @@
     .brand-card .name{font-size:22px;font-weight:900;margin:0}
     .brand-card .meta{color:var(--muted);margin-top:6px}
 
-    .modal{
-      position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); padding:16px; z-index:40;
-    }
+    .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); padding:16px; z-index:40}
     .modal.show{display:grid}
     .modal .sheet{width:min(720px,100%); background:#fff; border-radius:20px; box-shadow:var(--shadow); overflow:hidden}
     .sheet-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
@@ -71,237 +78,155 @@
 
     .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .actions .btn{min-width:180px}
-    @media (max-width:520px){ .actions{justify-content:stretch} .actions .btn{flex:1} }
-
-    @media (max-width:1024px){
-      .layout{grid-template-columns:1fr;grid-template-areas:"aside" "main"}
-    }
+    @media(max-width:520px){.actions{justify-content:stretch}.actions .btn{flex:1}}
+    @media(max-width:1024px){.layout{grid-template-columns:1fr;grid-template-areas:"aside""main"}}
   </style>
 </head>
 <body>
 
-  <div class="hero">
-    <img src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg" alt="">
-    <div class="brand">BONITA TOUCH</div>
-  </div>
+<section class="photo-slider">
+  <img src="1.jpg" class="active" />
+  <img src="2.jpg" />
+  <img src="3.jpg" />
+  <img src="4.jpg" />
+</section>
 
-  <div class="page">
-    <div class="layout">
+<div class="page">
+  <div class="layout">
 
-      <main>
-        <div class="card box">
-          <div class="row" style="justify-content:space-between">
-            <div class="status">تم التأكيد</div>
-            <div class="pill" id="datePill">—</div>
-          </div>
-
-          <div class="big-time" id="timeBig">—</div>
-          <div class="muted" id="durationText">المدة 45 دقيقة</div>
-
-          <div class="hr"></div>
-
-          <div class="actions">
-            <button class="btn btn-ghost" id="editBtn">تعديل الموعد</button>
-            <button class="btn btn-danger" id="cancelBtn">إلغاء الموعد</button>
-          </div>
-        </div>
-      </main>
-
-      <aside>
-        <div class="card brand-card" style="margin-bottom:14px">
-          <div style="flex:1">
-            <h3 class="name">BONITA TOUCH</h3>
-            <div class="meta">النعيم، جدة</div>
-          </div>
-          <img class="thumb"
-               src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg?class=thumb"
-               alt="">
+    <main>
+      <div class="card box">
+        <div class="row" style="justify-content:space-between">
+          <div class="status">تم التأكيد</div>
+          <div class="pill" id="datePill">—</div>
         </div>
 
-        <div class="card box">
-          <div class="muted" style="margin-bottom:8px">الخدمة/الخدمات</div>
-          <div id="sideItems"></div>
+        <div class="big-time" id="timeBig">—</div>
+        <div class="muted" id="durationText">المدة 45 دقيقة</div>
 
-          <div class="hr"></div>
-          <div class="muted" style="margin-bottom:4px">المحترف/المحترفون</div>
-          <div class="pill" id="prosPill">أي محترف</div>
+        <div class="hr"></div>
 
-          <div class="hr"></div>
-          <div class="row-between">
-            <span class="muted">التاريخ</span>
-            <span id="dateOut">—</span>
-          </div>
-          <div class="row-between" style="margin-top:8px">
-            <span class="muted">الوقت</span>
-            <span id="timeOut">—</span>
-          </div>
-
-          <div class="hr"></div>
-          <div class="row-between">
-            <span class="muted">الإجمالي</span>
-            <span style="font-weight:900"><span id="totalSide">0</span> ر.س</span>
-          </div>
-
-          <button class="btn btn-dark" style="width:100%;margin-top:12px" id="backHome">رجوع للرئيسية</button>
-        </div>
-      </aside>
-    </div>
-  </div>
-
-  <div class="modal" id="cancelModal" aria-hidden="true">
-    <div class="sheet" style="max-width:560px">
-      <div class="sheet-head">
-        <div style="font-weight:900;font-size:20px">هل لديك رغبة فعلاً في الإلغاء؟</div>
-        <button class="close-x" data-close>✕</button>
-      </div>
-      <div class="sheet-body">
-        <p class="muted" style="line-height:1.9">
-          إذا رغبتِ في تغيير وقت الموعد، فيمكنكِ إعادة تحديد موعد الحجز.
-          هل لديكِ رغبة فعلاً في إلغاء موعدكِ؟
-        </p>
-        <div class="row" style="justify-content:flex-end;gap:8px;margin-top:6px">
-          <button class="btn btn-light" data-close>العودة</button>
-          <button class="btn btn-danger" id="confirmCancel">نعم، إلغاء</button>
+        <div class="actions">
+          <button class="btn btn-ghost" id="editBtn">تعديل الموعد</button>
+          <button class="btn btn-danger" id="cancelBtn">إلغاء الموعد</button>
         </div>
       </div>
+    </main>
+
+    <aside>
+      <div class="card brand-card" style="margin-bottom:14px">
+        <div style="flex:1">
+          <h3 class="name">BONITA TOUCH</h3>
+          <div class="meta">النعيم، جدة</div>
+        </div>
+        <img class="thumb" src="4.jpg">
+      </div>
+
+      <div class="card box">
+        <div class="muted" style="margin-bottom:8px">الخدمة/الخدمات</div>
+        <div id="sideItems"></div>
+
+        <div class="hr"></div>
+        <div class="muted" style="margin-bottom:4px">المحترف/المحترفون</div>
+        <div class="pill" id="prosPill">أي محترف</div>
+
+        <div class="hr"></div>
+        <div class="row-between">
+          <span class="muted">التاريخ</span>
+          <span id="dateOut">—</span>
+        </div>
+        <div class="row-between" style="margin-top:8px">
+          <span class="muted">الوقت</span>
+          <span id="timeOut">—</span>
+        </div>
+
+        <div class="hr"></div>
+        <div class="row-between">
+          <span class="muted">الإجمالي</span>
+          <span style="font-weight:900"><span id="totalSide">0</span> ر.س</span>
+        </div>
+
+        <button class="btn btn-dark" style="width:100%;margin-top:12px" id="backHome">رجوع للرئيسية</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal" id="cancelModal">
+  <div class="sheet" style="max-width:560px">
+    <div class="sheet-head">
+      <div style="font-weight:900;font-size:20px">هل لديك رغبة فعلاً في الإلغاء؟</div>
+      <button class="close-x" data-close>✕</button>
+    </div>
+    <div class="sheet-body">
+      <p class="muted" style="line-height:1.9">
+        إذا رغبتِ في تغيير وقت الموعد، فيمكنكِ إعادة تحديد موعد الحجز.
+        هل لديكِ رغبة فعلاً في إلغاء موعدكِ؟
+      </p>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:6px">
+        <button class="btn btn-light" data-close>العودة</button>
+        <button class="btn btn-danger" id="confirmCancel">نعم، إلغاء</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <script>
-    let booking = {};
-    try { booking = JSON.parse(localStorage.getItem('booking')||'{}'); } catch(e){ booking = {}; }
+<script>
+  const slides = document.querySelectorAll('.photo-slider img');
+  let currentIndex = 0;
 
-    const datePill = document.getElementById('datePill');
-    const timeBig = document.getElementById('timeBig');
-    const durationText = document.getElementById('durationText');
+  function showSlide(index){
+    slides.forEach((slide,i)=>slide.classList.toggle('active',i===index));
+  }
+  function nextSlide(){
+    currentIndex = (currentIndex + 1) % slides.length;
+    showSlide(currentIndex);
+  }
+  setInterval(nextSlide,4000);
+  showSlide(currentIndex);
 
+  // أزرار الانتقال 👇
+  cancelBtn.onclick = () => location.href = 'canceled.html';
+  editBtn.onclick   = () => location.href = 'choose-professional.html';
+  backHome.onclick  = () => location.href = 'home.html'; /* ⭐ تمت الإضافة هنا */
+
+  // استرجاع بيانات الحجز من LocalStorage
+  let booking = {};
+  try {
+    booking = JSON.parse(localStorage.getItem('booking') || '{}');
+  } catch(e){}
+
+  // تعبئة الخدمات في aside
+  function renderServices(){
     const sideItems = document.getElementById('sideItems');
-    const prosPill = document.getElementById('prosPill');
-    const dateOut = document.getElementById('dateOut');
-    const timeOut = document.getElementById('timeOut');
-    const totalSide = document.getElementById('totalSide');
 
-    function render(){
-      datePill.textContent = booking.date || '—';
-      timeBig.textContent   = booking.time || '—';
-      dateOut.textContent   = booking.date || '—';
-      timeOut.textContent   = booking.time || '—';
-
-      const mins = booking.items?.[0]?.minutes || 45;
-      durationText.textContent = `المدة ${mins} دقيقة`;
-
-      sideItems.innerHTML = (booking.items||[]).map(it => `
+    if(Array.isArray(booking.items) && booking.items.length){
+      sideItems.innerHTML = booking.items.map(item => `
         <div class="row-between" style="padding:6px 0">
-          <span>${it.title || it.name || 'خدمة'}</span>
-          <span>${it.price ? (it.price + ' ر.س') : ''}</span>
+          <span>${item.title || item.name || 'خدمة'}</span>
+          <span>${item.price ? item.price + ' ر.س' : ''}</span>
         </div>
-      `).join('') || '<div class="muted">لا توجد خدمات.</div>';
-
-      const prosText = (booking.pros||[]).map(p => `${p.name} – ${p.dept||'عام'}`).join('، ');
-      prosPill.textContent = prosText || 'أي محترف';
-
-      totalSide.textContent = booking.total || 0;
-    }
-    render();
-
-    function go(href, {replace=false} = {}) {
-      const url = href.startsWith('./') || href.startsWith('../') ? href : './' + href;
-      fetch(url, { method: 'HEAD' })
-        .then(r => { if (!r.ok) throw new Error('NOT_FOUND'); replace ? location.replace(url) : location.assign(url); })
-        .catch(() => {
-          console.error('الملف غير موجود أو الاسم غير صحيح:', url);
-          alert('تعذر فتح: ' + url + '\nتأكدي من اسم الملف ومكانه.');
-        });
+      `).join('');
+    } else {
+      sideItems.innerHTML = '<div class="muted">—</div>';
     }
 
-    document.getElementById('editBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      try {
-        const toNumber = (v) => {
-          if (v == null) return 0;
-          const n = Number(String(v).replace(/[^\d.]/g,''));
-          return isNaN(n) ? 0 : n;
-        };
-        const cart = {
-          items: (booking.items || []).map(it => ({
-            name: it.title || it.name || 'خدمة',
-            price: toNumber(it.price),
-            cat: it.cat || it.category || '',
-            minutes: it.minutes || 45,
-            details: it.details || ''
-          })),
-          total: toNumber(booking.total)
-        };
-        sessionStorage.setItem('cart', JSON.stringify(cart));
+    document.getElementById('datePill').textContent = booking.date || '—';
+    document.getElementById('dateOut').textContent  = booking.date || '—';
+    document.getElementById('timeBig').textContent  = booking.time || '—';
+    document.getElementById('timeOut').textContent  = booking.time || '—';
+    document.getElementById('totalSide').textContent = booking.total || 0;
 
-        if (booking.prosByCategory) {
-          sessionStorage.setItem('prosByCategory', JSON.stringify(booking.prosByCategory));
-        } else if (Array.isArray(booking.pros)) {
-          const byCat = {};
-          booking.pros.forEach(p => {
-            const key = p.category || p.cat;
-            if (key) byCat[key] = p;
-          });
-          if (Object.keys(byCat).length) {
-            sessionStorage.setItem('prosByCategory', JSON.stringify(byCat));
-          }
-        }
+    const prosPill = document.getElementById('prosPill');
+    prosPill.textContent = (booking.pros && booking.pros.length)
+      ? booking.pros.map(p => p.name).join('، ')
+      : 'أي محترف';
+  }
 
-        delete booking.date;
-        delete booking.dateIso;
-        delete booking.time;
-        localStorage.setItem('booking', JSON.stringify(booking));
-      } catch(err) {
-        console.warn('Edit flow error:', err);
-      }
+  // تشغيل الدالة عند تحميل الصفحة
+  renderServices();
 
-      go('services.html');
-    });
+</script>
 
-    document.getElementById('cancelBtn').addEventListener('click',()=>{
-      document.getElementById('cancelModal').classList.add('show');
-    });
-    
-    document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',e=>{
-      e.target.closest('.modal').classList.remove('show');
-    }));
-    
-    // ✅ تأكيد الإلغاء → حذف من قاعدة البيانات
-    document.getElementById('confirmCancel').addEventListener('click', async (e)=>{
-      e.preventDefault();
-      
-      const bookingId = booking.booking_id;
-      
-      if (!bookingId) {
-        alert('لا يوجد رقم حجز للإلغاء');
-        localStorage.removeItem('booking');
-        go('canceled.html', { replace: true });
-        return;
-      }
-      
-      try {
-        const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
-          method: 'DELETE'
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          console.log('✅ تم إلغاء الحجز من قاعدة البيانات');
-          localStorage.removeItem('booking');
-          go('canceled.html', { replace: true });
-        } else {
-          throw new Error(result.error || 'فشل الإلغاء');
-        }
-      } catch (error) {
-        console.error('❌ خطأ في الإلغاء:', error);
-        alert('حدث خطأ أثناء إلغاء الحجز: ' + error.message);
-      }
-    });
-
-    document.getElementById('backHome').addEventListener('click',()=>{
-      go('home.html');
-    });
-  </script>
 </body>
 </html>

@@ -7,41 +7,58 @@
   <style>
     :root{
       --bg:#fafafa; --card:#fff; --line:#ececec; --fg:#111; --muted:#666;
-      --accent:#6f4ef6; --radius:16px; --shadow:0 12px 40px rgba(0,0,0,.06);
-      --danger:#ef4444;
+      --radius:16px; --shadow:0 12px 40px rgba(0,0,0,.06);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
+
     a{text-decoration:none;color:inherit}
-    .page{max-width:1180px;margin:40px auto;padding:0 16px}
 
-    /* هيرو صغيرة موحّدة */
-    .hero{
-      position:relative; overflow:hidden; border-radius:20px; height:220px;
-      background:#ddd; box-shadow:var(--shadow); margin-bottom:18px;
+    .page{max-width:1180px;margin:0 auto;padding:24px 16px 40px}
+
+    /* 🔥 سلايدر نفس صفحة الحجز */
+    .photo-slider{
+      position:relative; 
+      width:100%; 
+      max-width:1180px; 
+      height:260px; 
+      border-radius:24px; 
+      overflow:hidden; 
+      box-shadow:0 18px 48px rgba(0,0,0,0.08);
+      margin: 0 auto 24px auto;
+      background:#fde3ee;
     }
-    .hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.9)}
-    .brand{
-      position:absolute; inset-inline-start:24px; inset-block-end:16px;
-      color:#fff; font-weight:900; font-size:38px; text-shadow:0 6px 18px rgba(0,0,0,.35)
+    .photo-slider img{
+      position:absolute;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      top:0;left:0;
+      opacity:0;
+      transition:opacity 1s ease-in-out;
+    }
+    .photo-slider img.active{
+      opacity:1;
+      position:relative;
     }
 
-    /* نفس شبكة الصفحات: المحتوى يسار، سايدبار يمين */
-    .layout{display:grid;grid-template-columns:1fr 340px;grid-template-areas:"main aside";gap:24px;align-items:start}
+    .layout{
+      display:grid;grid-template-columns:1fr 340px;grid-template-areas:"main aside";
+      gap:24px;align-items:start
+    }
     main{grid-area:main}
     aside{grid-area:aside}
 
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
     .box{padding:18px}
-    .row{display:flex;gap:10px;align-items:center}
-    .row-between{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:12px 0}
+    .row{display:flex;align-items:center;gap:10px}
+    .row-between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:14px 0}
     .muted{color:var(--muted)}
-    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:800}
 
-    /* حالة الإلغاء */
+    /* ستايل الإلغاء */
     .status{
-      display:inline-flex;gap:10px;align-items:center;
+      display:inline-flex;
       background:#fef2f2;border:1px solid #fee2e2;color:#991b1b;
       padding:10px 14px;border-radius:12px;font-weight:900
     }
@@ -50,6 +67,7 @@
     .btn{appearance:none;border:0;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}
     .btn-dark{background:#111;color:#fff}
     .btn-light{background:#fff;border:1px solid var(--line)}
+
     .brand-card{display:flex;align-items:center;gap:14px;padding:16px}
     .brand-card .thumb{width:100px;height:100px;border-radius:20px;object-fit:cover;box-shadow:var(--shadow)}
     .brand-card .name{font-size:22px;font-weight:900;margin:0}
@@ -58,18 +76,22 @@
     @media (max-width:1024px){
       .layout{grid-template-columns:1fr;grid-template-areas:"aside" "main"}
     }
+
   </style>
 </head>
 <body>
-  <!-- هيرو -->
-  <div class="page">
-    <div class="hero">
-      <img src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg" alt="">
-      <div class="brand">BONITA TOUCH</div>
-    </div>
 
+  <!-- 🔥 سلايدر الصور -->
+  <section class="photo-slider">
+    <img src="1.jpg" class="active">
+    <img src="2.jpg">
+    <img src="3.jpg">
+    <img src="4.jpg">
+  </section>
+
+  <div class="page">
     <div class="layout">
-      <!-- المحتوى -->
+
       <main>
         <div class="card box">
           <div class="status">تم إلغاء الموعد</div>
@@ -86,16 +108,13 @@
         </div>
       </main>
 
-      <!-- السايدبار الموحد -->
       <aside>
         <div class="card brand-card" style="margin-bottom:14px">
           <div style="flex:1">
             <h3 class="name">BONITA TOUCH</h3>
             <div class="meta">النعيم، جدة</div>
           </div>
-        <img class="thumb"
-             src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg?class=thumb"
-             alt="">
+          <img class="thumb" src="4.jpg">
         </div>
 
         <div class="card box">
@@ -104,6 +123,7 @@
             <span id="serviceName">—</span>
             <span id="servicePrice">—</span>
           </div>
+
           <div class="hr"></div>
           <div class="row-between">
             <span class="muted">التاريخ</span>
@@ -115,42 +135,42 @@
           </div>
         </div>
       </aside>
+
     </div>
   </div>
 
-  <script>
-    // حمّلي ملخص آخر حجز قبل حذفه (لو موجود)
-    let booking = {};
-    try { booking = JSON.parse(localStorage.getItem('booking')||'{}'); } catch(e){ booking = {}; }
+<script>
+  // Slider Logic
+  const slides = document.querySelectorAll('.photo-slider img');
+  let currentIndex = 0;
 
-    // أعرضي التفاصيل إن وجدت
-    const serviceName = document.getElementById('serviceName');
-    const servicePrice = document.getElementById('servicePrice');
-    const sideDate = document.getElementById('sideDate');
-    const sideTime = document.getElementById('sideTime');
-    const canceledDate = document.getElementById('canceledDate');
-    const canceledTime = document.getElementById('canceledTime');
+  function showSlide(index){
+    slides.forEach((slide,i)=>slide.classList.toggle('active', i === index));
+  }
+  function nextSlide(){
+    currentIndex = (currentIndex + 1) % slides.length;
+    showSlide(currentIndex);
+  }
+  setInterval(nextSlide, 4000);
 
-    const firstItem = booking?.items?.[0] || {};
-    serviceName.textContent = firstItem.title || firstItem.name || 'خدمة';
-    servicePrice.textContent = firstItem.price ? (firstItem.price + ' ر.س') : (booking.total ? booking.total + ' ر.س' : '—');
+  // Load booking then clear it
+  let booking = {};
+  try { booking = JSON.parse(localStorage.getItem('booking')||'{}'); } catch(e){}
 
-    sideDate.textContent = booking.date || '—';
-    sideTime.textContent = booking.time || '—';
-    canceledDate.textContent = booking.date ? `تم إلغاء موعد يوم ${booking.date}` : '';
-    canceledTime.textContent = booking.time ? `الساعة ${booking.time}` : '';
+  const firstItem = booking?.items?.[0] || {};
+  serviceName.textContent = firstItem.title || firstItem.name || '—';
+  servicePrice.textContent = firstItem.price ? (firstItem.price + ' ر.س') : (booking.total ? booking.total + ' ر.س' : '—');
 
-    // بعد القراءة، امسحي بيانات الحجز
-    localStorage.removeItem('booking');
+  canceledDate.textContent = booking.date ? `تم إلغاء موعد يوم ${booking.date}` : '—';
+  canceledTime.textContent = booking.time ? `${booking.time}` : '—';
+  sideDate.textContent = booking.date || '—';
+  sideTime.textContent = booking.time || '—';
 
-    // أزرار
-    document.getElementById('bookAgain').addEventListener('click', ()=>{
-      // اذهبي لصفحة الخدمات لتختار من جديد
-      window.location.href = 'services.html';
-    });
-    document.getElementById('backHome').addEventListener('click', ()=>{
-      window.location.href = 'home.html';
-    });
-  </script>
+  localStorage.removeItem('booking');
+
+  bookAgain.onclick = ()=>location.href='services.html';
+  backHome.onclick = ()=>location.href='home.html';
+</script>
+
 </body>
 </html>

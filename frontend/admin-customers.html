@@ -111,7 +111,7 @@
     .detail-label{color:var(--muted); font-weight:600}
     .detail-value{font-weight:700}
 
-    /* قائمة الخدمات مع أزرار الحذف */
+    /* قائمة الخدمات (عرض فقط الآن) */
     .services-list{margin:12px 0}
     .service-item{
       display:flex; justify-content:space-between; align-items:center;
@@ -120,12 +120,15 @@
     .service-info{flex:1}
     .service-name{font-weight:700; margin-bottom:4px}
     .service-meta{font-size:13px; color:var(--muted)}
+
+    /* ستايل زر حذف الخدمة باقي لكن غير مستخدم حالياً
     .btn-delete-service{
       padding:6px 12px; border:1px solid #fca5a5; background:#fef2f2;
       color:#dc2626; border-radius:6px; cursor:pointer; font-size:12px;
       font-weight:600; transition:.2s;
     }
     .btn-delete-service:hover{background:#fee2e2}
+    */
 
     @media (max-width:768px){
       .search-box{width:100%; margin-top:12px}
@@ -299,7 +302,7 @@
       const modal = document.getElementById('detailsModal');
       const body = document.getElementById('modalBody');
 
-      // عرض قائمة الخدمات مع أزرار حذف
+      // قائمة الخدمات للعرض فقط (بدون زر حذف)
       const servicesHTML = booking.items.map((item) => `
         <div class="service-item">
           <div class="service-info">
@@ -308,11 +311,6 @@
               ${item.price} ر.س • ${item.minutes} دقيقة • ${item.professional_name || 'أي محترف'}
             </div>
           </div>
-          ${booking.items.length > 1 ? `
-            <button class="btn-delete-service" onclick="deleteService(${booking.id}, ${item.id})">
-              حذف
-            </button>
-          ` : ''}
         </div>
       `).join('');
 
@@ -364,6 +362,7 @@
       modal.classList.add('show');
     }
 
+    // تقدرِين تحذفين الدالة هذي لو ما تحتاجين حذف خدمة من أي مكان
     async function deleteService(bookingId, serviceIndex) {
       if (!confirm('هل تريدين حذف هذه الخدمة فقط؟')) return;
 

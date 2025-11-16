@@ -10,7 +10,12 @@
       --accent:#6f4ef6; --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.06);
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:var(--bg);
+      color:var(--fg)
+    }
     a{text-decoration:none;color:inherit}
 
     .page{max-width:1180px;margin:40px auto;padding:0 16px}
@@ -19,42 +24,160 @@
       display:grid;
       grid-template-columns: 1fr 340px;
       grid-template-areas: "main aside";
-      gap:24px;align-items:start
+      gap:24px;
+      align-items:start;
     }
-    main{grid-area: main}
-    aside{grid-area: aside}
+    main{
+      grid-area: main;
+    }
+    aside{
+      grid-area: aside;
+      /* شلنا الـ margin-top عشان يكون بنفس خط الكرت الرئيسي */
+      margin-top:0;
+    }
 
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .brand-card{display:flex;align-items:center;gap:14px;padding:16px}
-    .brand-card .thumb{width:100px;height:100px;border-radius:20px;object-fit:cover;box-shadow:var(--shadow)}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow)
+    }
+    .panel{
+      padding:18px;
+    }
+
+    .brand-card{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:16px
+    }
+    .brand-card .thumb{
+      width:100px;
+      height:100px;
+      border-radius:20px;
+      object-fit:cover;
+      box-shadow:var(--shadow)
+    }
     .brand-card .name{font-size:22px;font-weight:900;margin:0}
     .brand-card .meta{color:var(--muted);margin-top:6px}
 
     .box{padding:18px}
-    .sel-line{display:flex;gap:8px;align-items:flex-start;padding:10px;border-radius:12px;background:#faf7ff;border:1px dashed #e9e9ff}
+    .sel-line{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      padding:10px;
+      border-radius:12px;
+      background:#faf7ff;
+      border:1px dashed #e9e9ff
+    }
     .sel-line .title{font-weight:800}
     .sel-line .price{margin-inline-start:auto;font-weight:900}
     .detail{font-size:12px;color:#777}
-    .hr{height:1px;background:linear-gradient(90deg,#eee,#f2eafe,#eee);margin:12px 0}
-    .total{display:flex;justify-content:space-between;align-items:center;font-weight:800}
-    .btn-primary{width:100%;margin-top:12px;appearance:none;border:0;border-radius:14px;padding:14px 16px;background:#111;color:#fff;font-weight:800;cursor:pointer}
+    .hr{
+      height:1px;
+      background:linear-gradient(90deg,#eee,#f2eafe,#eee);
+      margin:12px 0
+    }
+    .total{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-weight:800
+    }
+    .btn-primary{
+      width:100%;
+      margin-top:12px;
+      appearance:none;
+      border:0;
+      border-radius:14px;
+      padding:14px 16px;
+      background:#111;
+      color:#fff;
+      font-weight:800;
+      cursor:pointer
+    }
     .btn-primary:hover{filter:brightness(.95)}
 
     .assigned{display:grid;gap:8px}
-    .chip{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+    .chip{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff
+    }
     .chip strong{margin-inline-start:auto}
 
-    .header-title{font-size:38px;font-weight:900;margin:8px 0 12px}
-    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-    .tab{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:700}
-    .tab.active{background:#f3f0ff;border-color:#e0d6ff}
+    .header-title{
+      font-size:38px;
+      font-weight:900;
+      margin:8px 0 16px
+    }
+    .filters{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:8px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:700
+    }
+    .tab.active{
+      background:#f3f0ff;
+      border-color:#e0d6ff
+    }
 
-    .grid{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:18px}
-    .pro{padding:22px;text-align:center;border:1px solid var(--line);border-radius:18px;background:#fff;cursor:pointer;transition:.15s}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(220px,1fr));
+      gap:18px
+    }
+    .pro{
+      padding:22px;
+      text-align:center;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+      cursor:pointer;
+      transition:.15s
+    }
     .pro:hover{transform:translateY(-2px)}
-    .pro.selected{outline:2px solid #cabafc;box-shadow:0 8px 24px rgba(111,78,246,.14)}
-    .avatar{width:70px;height:70px;border-radius:50%;object-fit:cover;display:grid;place-items:center;margin:0 auto 10px;background:#f1f1f1;font-weight:900;font-size:28px}
-    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f3f0ff;border:1px solid #e5ddff;font-size:13px;font-weight:700}
+    .pro.selected{
+      outline:2px solid #cabafc;
+      box-shadow:0 8px 24px rgba(111,78,246,.14)
+    }
+    .avatar{
+      width:70px;
+      height:70px;
+      border-radius:50%;
+      object-fit:cover;
+      display:grid;
+      place-items:center;
+      margin:0 auto 10px;
+      background:#f1f1f1;
+      font-weight:900;
+      font-size:28px
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#f3f0ff;
+      border:1px solid #e5ddff;
+      font-size:13px;
+      font-weight:700
+    }
     .name{margin-top:6px;font-weight:900}
     .role{font-size:12px;color:var(--muted)}
 
@@ -62,26 +185,35 @@
 
     @media (max-width:1024px){
       .grid{grid-template-columns:repeat(2,minmax(220px,1fr))}
-      .layout{grid-template-columns:1fr;grid-template-areas:"aside" "main"}
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-areas:"aside" "main"
+      }
+      aside{margin-top:0;}
     }
-    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+    @media (max-width:640px){
+      .grid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="layout">
       <main>
-        <div class="header-title">اختيار المحترفين</div>
+        <!-- غلفنا المحتوى داخل كرت مثل صفحة الوقت -->
+        <div class="card panel">
+          <div class="header-title">اختيار المحترفين</div>
 
-        <div class="filters">
-          <button class="tab active" data-filter="all">الكل</button>
-          <button class="tab" data-filter="أظافر">أظافر</button>
-          <button class="tab" data-filter="شعر">شعر</button>
-          <button class="tab" data-filter="ميكب">ميكب</button>
-        </div>
+          <div class="filters">
+            <button class="tab active" data-filter="all">الكل</button>
+            <button class="tab" data-filter="أظافر">أظافر</button>
+            <button class="tab" data-filter="شعر">شعر</button>
+            <button class="tab" data-filter="ميكب">ميكب</button>
+          </div>
 
-        <div class="grid" id="pros">
-          <div class="loading">جاري تحميل المحترفات...</div>
+          <div class="grid" id="pros">
+            <div class="loading">جاري تحميل المحترفات...</div>
+          </div>
         </div>
       </main>
 
@@ -92,7 +224,7 @@
             <div class="meta">النعيم، جدة</div>
           </div>
           <img class="thumb"
-               src="https://images.fresha.com/locations/location-profile-images/873704/4817851/87cf053b-8d1c-4549-a7ef-06a12ef5b433-OMBRETOUCH-SA-Fresha.jpg?class=thumb"
+               src="4.jpg"
                alt="صورة الصالون">
         </div>
 
@@ -152,10 +284,8 @@
         card.dataset.rating = prof.rating || '—';
         card.dataset.specialties = prof.specialties;
 
-        // الحرف الأول من الاسم
         const initial = prof.name.charAt(0);
         
-        // الأيقونة حسب التخصص
         let icon = '👥';
         if (prof.specialties.includes('أظافر')) icon = '💅';
         else if (prof.specialties.includes('شعر')) icon = '💇‍♀️';
@@ -173,7 +303,6 @@
         grid.appendChild(card);
       });
 
-      // إضافة event listeners
       setupFilters();
       setupSelection();
     }
@@ -209,21 +338,17 @@
           specialties: card.dataset.specialties
         };
 
-        // جمع الأقسام الموجودة في السلة
         const categoriesInCart = [...new Set(cart.items.map(item => item.category).filter(Boolean))];
 
-        // إذا كان "أي محترف" - اختاره لكل الأقسام الموجودة في السلة فقط
         if (data.specialties.includes('أظافر، شعر، ميكب')) {
           categoriesInCart.forEach(cat => {
             selectedByCat[cat] = data;
           });
         } else {
-          // تحقق: هل المحترفة متخصصة في أقسام موجودة في السلة؟
           const profCategories = categories.filter(cat => data.specialties.includes(cat));
           const relevantCategories = profCategories.filter(cat => categoriesInCart.includes(cat));
 
           if (relevantCategories.length === 0) {
-            // المحترفة مو متخصصة في أي قسم موجود في السلة
             const catIcons = {
               'أظافر': '💅',
               'شعر': '💇‍♀️',
@@ -237,7 +362,6 @@
             return;
           }
 
-          // اختيار المحترفة للأقسام المناسبة فقط
           relevantCategories.forEach(cat => {
             selectedByCat[cat] = data;
           });
@@ -304,18 +428,15 @@
         return; 
       }
       
-      // جمع الأقسام الموجودة في السلة
       const categoriesInCart = [...new Set(cart.items.map(item => item.category).filter(Boolean))];
       
       if(categoriesInCart.length === 0){
-        // لو ما فيه تصنيف، خليها تختار أي محترفة
         const hasSelection = Object.values(selectedByCat).some(v => v !== null);
         if(!hasSelection){
           alert('اختاري محترفة واحدة على الأقل');
           return;
         }
       } else {
-        // تحقق من اختيار محترفة لكل قسم موجود في السلة
         const missingCategories = categoriesInCart.filter(cat => !selectedByCat[cat]);
         
         if(missingCategories.length > 0){
@@ -329,7 +450,6 @@
       window.location.href = 'time.html';
     });
 
-    // تحميل البيانات
     loadProfessionals();
     renderSummary();
     renderAssigned();
