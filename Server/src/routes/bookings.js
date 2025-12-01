@@ -44,10 +44,11 @@ router.get('/professionals', (req, res, next) => {
 router.get('/bookings', (req, res, next) => {
   try {
     const bookings = db.prepare(`
-      SELECT 
+      SELECT
         id, customer_name, contact_method, contact_value,
-        date_iso, date_display, time_str, 
+        date_iso, date_display, time_str,
         professional_id, professional_name,
+        service_name, service_price,
         total, status, created_at
       FROM bookings
       WHERE status = 'confirmed'
@@ -57,7 +58,7 @@ router.get('/bookings', (req, res, next) => {
 
     const data = bookings.map(booking => {
       const items = db.prepare(`
-        SELECT id, service_id, service_name, price, minutes, 
+        SELECT id, service_id, service_name, price, minutes,
                professional_id, professional_name, details
         FROM booking_items
         WHERE booking_id = ?
@@ -66,9 +67,9 @@ router.get('/bookings', (req, res, next) => {
       return {
         id: booking.id,
         customer_name: booking.customer_name,
-        contact: { 
-          method: booking.contact_method, 
-          value: booking.contact_value 
+        contact: {
+          method: booking.contact_method,
+          value: booking.contact_value
         },
         date_iso: booking.date_iso,
         date_display: booking.date_display,
@@ -85,6 +86,70 @@ router.get('/bookings', (req, res, next) => {
     });
 
     res.json({ success: true, count: data.length, data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ========================================
+// GET /api/bookings/:id - جلب حجز واحد
+// ========================================
+router.get('/bookings/:id', (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'معرّف الحجز مطلوب'
+      });
+    }
+
+    const booking = db.prepare(`
+      SELECT
+        id, customer_name, contact_method, contact_value,
+        date_iso, date_display, time_str,
+        professional_id, professional_name,
+        service_name, service_price,
+        total, status, created_at
+      FROM bookings WHERE id = ?
+    `).get(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        error: 'الحجز غير موجود'
+      });
+    }
+
+    const items = db.prepare(`
+      SELECT id, service_id, service_name, price, minutes,
+             professional_id, professional_name, details
+      FROM booking_items
+      WHERE booking_id = ?
+    `).all(booking.id);
+
+    const data = {
+      id: booking.id,
+      customer_name: booking.customer_name,
+      contact: {
+        method: booking.contact_method,
+        value: booking.contact_value
+      },
+      date_iso: booking.date_iso,
+      date_display: booking.date_display,
+      time: booking.time_str,
+      professional: {
+        id: booking.professional_id,
+        name: booking.professional_name
+      },
+      items: items,
+      total: booking.total,
+      status: booking.status,
+      created_at: booking.created_at,
+    };
+
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
@@ -172,7 +237,7 @@ router.post('/bookings', (req, res, next) => {
     if (!payload.contact?.value?.trim()) {
       return res.status(400).json({
         success: false,
-        error: 'يرجى إدخال رقم الجوال أو البريد الإلكتروني'
+        error: 'يرجى إدخال رقم الجوال'
       });
     }
 
@@ -215,13 +280,19 @@ router.post('/bookings', (req, res, next) => {
       });
     }
 
+    // استخراج اسم الخدمة والسعر من العنصر الأول
+    const firstItem = payload.items && payload.items.length > 0 ? payload.items[0] : null;
+    const serviceName = firstItem ? (firstItem.service_name || firstItem.title || firstItem.name) : null;
+    const servicePrice = firstItem ? (firstItem.price || 0) : null;
+
     // حفظ الحجز
     const insertBooking = db.prepare(`
       INSERT INTO bookings
-        (customer_name, contact_method, contact_value, 
-         date_iso, date_display, time_str, 
-         professional_id, professional_name, total, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (customer_name, contact_method, contact_value,
+         date_iso, date_display, time_str,
+         professional_id, professional_name,
+         service_name, service_price, total, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const bookingInfo = insertBooking.run(
@@ -233,6 +304,8 @@ router.post('/bookings', (req, res, next) => {
       payload.time,
       payload.professional?.id || null,
       payload.professional?.name || 'أي محترف',
+      serviceName,
+      servicePrice,
       payload.total || 0,
       'confirmed'
     );
@@ -348,12 +421,140 @@ router.delete('/bookings/:id/items/:itemId', (req, res, next) => {
 });
 
 // ========================================
+// PUT /api/bookings/:id - تعديل حجز
+// ========================================
+router.put('/bookings/:id', (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const payload = req.body ?? {};
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'معرّف الحجز مطلوب'
+      });
+    }
+
+    // التحقق من وجود الحجز
+    const existingBooking = db.prepare(`
+      SELECT id, customer_name, contact_value, date_iso, time_str,
+             professional_id, professional_name, total, status
+      FROM bookings WHERE id = ?
+    `).get(id);
+
+    if (!existingBooking) {
+      return res.status(404).json({
+        success: false,
+        error: 'الحجز غير موجود'
+      });
+    }
+
+    if (existingBooking.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        error: 'لا يمكن تعديل حجز ملغي'
+      });
+    }
+
+    // التحقق من البيانات الأساسية
+    if (!payload.date_iso || !payload.time) {
+      return res.status(400).json({
+        success: false,
+        error: 'التاريخ والوقت مطلوبان'
+      });
+    }
+
+    // منع التكرار البسيط (إلا إذا كان نفس الحجز)
+    const duplicate = db.prepare(`
+      SELECT id FROM bookings
+      WHERE contact_value = ?
+        AND date_iso = ?
+        AND time_str = ?
+        AND status = 'confirmed'
+        AND id != ?
+    `).get(existingBooking.contact_value, payload.date_iso, payload.time, id);
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        error: 'لديك حجز في نفس الوقت. اختاري وقتاً آخر.'
+      });
+    }
+
+    // استخراج اسم الخدمة والسعر من العنصر الأول
+    const firstItem = payload.items && payload.items.length > 0 ? payload.items[0] : null;
+    const serviceName = firstItem ? (firstItem.service_name || firstItem.title || firstItem.name) : null;
+    const servicePrice = firstItem ? (firstItem.price || 0) : null;
+
+    // تحديث الحجز
+    const updateBooking = db.prepare(`
+      UPDATE bookings
+      SET date_iso = ?, date_display = ?, time_str = ?,
+          professional_id = ?, professional_name = ?,
+          service_name = ?, service_price = ?, total = ?
+      WHERE id = ?
+    `);
+
+    const newTotal = payload.total || existingBooking.total;
+    updateBooking.run(
+      payload.date_iso,
+      payload.date_display || payload.date_iso,
+      payload.time,
+      payload.professional?.id || existingBooking.professional_id,
+      payload.professional?.name || existingBooking.professional_name,
+      serviceName,
+      servicePrice,
+      newTotal,
+      id
+    );
+
+    // تحديث الخدمات إذا تم توفيرها
+    if (payload.items && Array.isArray(payload.items)) {
+      // حذف الخدمات القديمة
+      db.prepare('DELETE FROM booking_items WHERE booking_id = ?').run(id);
+
+      // إضافة الخدمات الجديدة
+      const insertItem = db.prepare(`
+        INSERT INTO booking_items
+          (booking_id, service_id, service_name, price, minutes,
+           professional_id, professional_name, details)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      payload.items.forEach(item => {
+        insertItem.run(
+          id,
+          item.service_id || null,
+          item.service_name || item.title || item.name,
+          item.price || 0,
+          item.minutes || 45,
+          item.professional_id || payload.professional?.id || null,
+          item.professional_name || payload.professional?.name || null,
+          item.details || null
+        );
+      });
+    }
+
+    console.log(`✏️ تم تعديل الحجز #${id} - ${existingBooking.customer_name}`);
+
+    res.json({
+      success: true,
+      message: 'تم تعديل الحجز بنجاح',
+      id: id
+    });
+  } catch (err) {
+    console.error('❌ خطأ في تعديل الحجز:', err);
+    next(err);
+  }
+});
+
+// ========================================
 // DELETE /api/bookings/:id - إلغاء حجز كامل
 // ========================================
 router.delete('/bookings/:id', (req, res, next) => {
   try {
     const { id } = req.params;
-    
+
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -363,7 +564,7 @@ router.delete('/bookings/:id', (req, res, next) => {
 
     // تحديث حالة الحجز إلى ملغي
     const result = db.prepare(`
-      UPDATE bookings 
+      UPDATE bookings
       SET status = 'cancelled'
       WHERE id = ?
     `).run(id);
@@ -377,9 +578,9 @@ router.delete('/bookings/:id', (req, res, next) => {
 
     console.log(`🗑️ تم إلغاء الحجز #${id}`);
 
-    res.json({ 
-      success: true, 
-      message: 'تم إلغاء الحجز بنجاح' 
+    res.json({
+      success: true,
+      message: 'تم إلغاء الحجز بنجاح'
     });
   } catch (err) {
     console.error('❌ خطأ في إلغاء الحجز:', err);

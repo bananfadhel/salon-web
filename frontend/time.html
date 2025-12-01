@@ -117,28 +117,31 @@
     
     <!-- حقل الاسم -->
     <div class="field">
-      <label class="label" for="customerName">الاسم الكامل</label>
-      <input class="input" id="customerName" type="text" placeholder="اسمك الكامل" />
-      <div id="nameErr" class="err">أدخلي الاسم من فضلك.</div>
+      <label class="label" for="fullNameInput">الاسم الكامل</label>
+      <input class="input" id="fullNameInput" type="text" placeholder="اسمك الكامل" />
+      <div id="nameErr" class="err">يرجى إدخال الاسم الكامل</div>
     </div>
 
     <!-- حقل رقم الجوال -->
     <div class="field">
-      <label class="label" for="phone">رقم الجوال</label>
-      <input class="input" id="phone" type="tel" inputmode="numeric" placeholder="05xxxxxxxx" />
-      <div id="phoneErr" class="err">أدخلي رقم جوال صالح.</div>
-    </div>
-
-    <div class="or-row">أو</div>
-
-    <!-- حقل البريد الإلكتروني -->
-    <div class="field">
-      <label class="label" for="email">البريد الإلكتروني</label>
-      <input class="input" id="email" type="email" placeholder="name@example.com" />
-      <div id="emailErr" class="err">أدخلي بريد إلكتروني صحيح.</div>
+      <label class="label" for="phoneInput">رقم الجوال</label>
+      <input class="input" id="phoneInput" type="tel" inputmode="numeric" placeholder="05xxxxxxxx" />
+      <div id="phoneErr" class="err">يرجى إدخال رقم الجوال</div>
     </div>
 
     <button id="authSubmit" class="action-btn" type="button">تأكيد الحجز</button>
+  </div>
+</div>
+
+<!-- Server error modal -->
+<div id="serverErrorModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="serverErrorTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="serverErrorTitle">خطأ في الاتصال</div>
+      <button class="modal-close" id="serverErrorClose" aria-label="إغلاق">×</button>
+    </div>
+    <div class="modal-sub" id="serverErrorMessage">لا يمكن الاتصال بالسيرفر، تأكدي من تشغيل السيرفر على المنفذ 5000</div>
+    <button id="serverErrorOk" class="action-btn" type="button">موافق</button>
   </div>
 </div>
 
@@ -147,6 +150,44 @@
   const cart = (()=>{ try{return JSON.parse(sessionStorage.getItem('cart')||'{"items":[],"total":0}')}catch(e){return {items:[],total:0}} })();
   const prosByCategory = (()=>{ try{return JSON.parse(sessionStorage.getItem('prosByCategory')||'{}')}catch(e){return {}} })();
   let booking = (()=>{ try{return JSON.parse(localStorage.getItem('booking')||'{}')}catch(e){return {}} })();
+
+  /* ===== تحديد وضع التعديل ===== */
+  let isEditMode = false;
+
+  // دالة للتحقق من وضع التعديل
+  async function checkEditMode() {
+    if (booking.booking_id && booking.customer_name && booking.contact) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/bookings/${booking.booking_id}`);
+        const result = await response.json();
+        if (result.success && result.data.status === 'confirmed') {
+          isEditMode = true;
+          // تحديث البيانات من السيرفر
+          booking = { ...booking, ...result.data };
+          localStorage.setItem('booking', JSON.stringify(booking));
+        } else {
+          // الحجز ملغي أو غير موجود، مسح البيانات
+          localStorage.removeItem('booking');
+          booking = {};
+          isEditMode = false;
+        }
+      } catch (error) {
+        console.error('خطأ في التحقق من وضع التعديل:', error);
+        // في حالة الخطأ، نفترض أنه حجز جديد
+        localStorage.removeItem('booking');
+        booking = {};
+        isEditMode = false;
+      }
+    } else {
+      isEditMode = false;
+      // مسح البيانات القديمة للحجوزات الجديدة
+      localStorage.removeItem('booking');
+      booking = {};
+    }
+  }
+
+  // التحقق من وضع التعديل عند تحميل الصفحة
+  checkEditMode();
 
   /* ===== سايدبار ===== */
   const chosenList=document.getElementById('chosenList'), totalOut=document.getElementById('totalOut'), prosPill=document.getElementById('prosPill'), dateOut=document.getElementById('dateOut'), timeOut=document.getElementById('timeOut');
@@ -211,7 +252,7 @@
       const selectedPros = Object.values(prosByCategory).filter(p => p);
       const profId = selectedPros[0]?.id || null;
       
-      const url = profId 
+      const url = profId
         ? `http://localhost:5000/api/available-slots?date=${activeDayIso}&professionalId=${profId}`
         : `http://localhost:5000/api/available-slots?date=${activeDayIso}`;
       
@@ -261,76 +302,45 @@
 
   /* ===== مودال التسجيل + تحويل إلى confirm ===== */
   const goNextBtn=document.getElementById('goNext'), modal=document.getElementById('authModal'), modalClose=document.getElementById('authClose'), authSubmit=document.getElementById('authSubmit');
-  const nameInp=document.getElementById('customerName'), phoneInp=document.getElementById('phone'), emailInp=document.getElementById('email');
-  const nameErr=document.getElementById('nameErr'), phoneErr=document.getElementById('phoneErr'), emailErr=document.getElementById('emailErr');
-  
-  const openAuth=()=>{modal.classList.add('is-open');modal.setAttribute('aria-hidden','false')};
+  const nameInp=document.getElementById('fullNameInput'), phoneInp=document.getElementById('phoneInput');
+  const nameErr=document.getElementById('nameErr'), phoneErr=document.getElementById('phoneErr');
+
+  // Server error modal
+  const serverErrorModal = document.getElementById('serverErrorModal');
+  const serverErrorClose = document.getElementById('serverErrorClose');
+  const serverErrorOk = document.getElementById('serverErrorOk');
+  const serverErrorMessage = document.getElementById('serverErrorMessage');
+
+  const openAuth=()=>{modal.classList.add('is-open');modal.setAttribute('aria-hidden','false'); setTimeout(() => nameInp.focus(), 500);};
   const closeAuth=()=>{modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true')};
   const redirectToConfirm=()=>{ window.location.href='confirm.html'; };
+  const redirectToConfirmWithSuccess=()=>{ window.location.href='confirm.html?success=1'; };
 
-  goNextBtn.addEventListener('click',()=>{
-    if(!booking.dateIso || !booking.date){ 
-      alert('فضلاً اختاري يومًا أولاً.'); 
-      return; 
-    }
-    if(!booking.time){ 
-      alert('فضلاً اختاري وقتًا.'); 
-      return; 
-    }
-    
-    booking.salon={name:'BONITA TOUCH',city:'النعيم، جدة'};
-    booking.items=(cart.items||[]).map(it=>({title:it.name||it.title,price:it.price||it.amount||'',minutes:it.minutes||45,details:it.details||'',cat:it.cat||it.category||''}));
-    booking.total=cart.total||0;
-    booking.prosByCategory=JSON.parse(sessionStorage.getItem('prosByCategory')||'{}');
-    booking.pros=Object.values(booking.prosByCategory||{});
-    localStorage.setItem('booking',JSON.stringify(booking));
-    openAuth();
-  });
-  
-  modalClose.addEventListener('click',closeAuth);
-  modal.addEventListener('click',e=>{ if(e.target===modal) closeAuth(); });
+  // Function to show server error popup
+  function showServerErrorPopup(message) {
+    serverErrorMessage.textContent = message;
+    serverErrorModal.classList.add('is-open');
+    serverErrorModal.setAttribute('aria-hidden', 'false');
+  }
 
-  const isValidPhone=v=>/^0?5\d{8}$/.test(String(v||'').trim());
-  const isValidEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
+  // Close server error modal
+  const closeServerError = () => {
+    serverErrorModal.classList.remove('is-open');
+    serverErrorModal.setAttribute('aria-hidden', 'true');
+  };
+  serverErrorClose.addEventListener('click', closeServerError);
+  serverErrorOk.addEventListener('click', closeServerError);
+  serverErrorModal.addEventListener('click', e => { if (e.target === serverErrorModal) closeServerError(); });
 
   // ========================================
-  // ✨ الكود المحسّن لحفظ الحجز
+  // ✨ دالة تحديث الحجز
   // ========================================
-  authSubmit.addEventListener('click', async ()=>{
-    nameErr.classList.remove('show'); 
-    phoneErr.classList.remove('show'); 
-    emailErr.classList.remove('show');
-    
-    const name=nameInp.value.trim(), phone=phoneInp.value.trim(), email=emailInp.value.trim();
-    
-    // التحقق من الاسم (مطلوب)
-    if(!name){ nameErr.classList.add('show'); return; }
-    
-    // التحقق من وسيلة التواصل (لازم جوال أو إيميل)
-    if(!phone && !email){ 
-      phoneErr.textContent = 'أدخلي رقم الجوال أو البريد الإلكتروني';
-      phoneErr.classList.add('show'); 
-      return; 
-    }
-    
-    // التحقق من صحة الجوال (لو موجود)
-    if(phone && !isValidPhone(phone)){ 
-      phoneErr.textContent = 'أدخلي رقم جوال صالح.';
-      phoneErr.classList.add('show'); 
-      return; 
-    }
-    
-    // التحقق من صحة الإيميل (لو موجود)
-    if(email && !isValidEmail(email)){ 
-      emailErr.classList.add('show'); 
-      return; 
-    }
-    
-    // تعطيل الزر أثناء الإرسال
-    authSubmit.disabled = true;
-    authSubmit.textContent = 'جاري الحفظ...';
-    
+  async function updateBooking(){
     try {
+      // تعطيل الزر أثناء الإرسال
+      goNextBtn.disabled = true;
+      goNextBtn.textContent = 'جاري التحديث...';
+
       // جمع بيانات المحترفات بشكل صحيح
       const prosArray = Object.entries(prosByCategory)
         .filter(([cat, pro]) => pro !== null)
@@ -345,7 +355,7 @@
       const itemsWithPros = (booking.items || []).map(item => {
         const itemCategory = item.cat || item.category;
         const assignedPro = itemCategory ? prosByCategory[itemCategory] : null;
-        
+
         return {
           service_name: item.title || item.name || 'خدمة',
           price: Number(item.price) || 0,
@@ -358,11 +368,6 @@
 
       // إعداد بيانات الحجز للإرسال
       const bookingData = {
-        customer_name: name,
-        contact: {
-          method: phone ? 'phone' : 'email',
-          value: phone || email
-        },
         date_iso: booking.dateIso,
         date_display: booking.date,
         time: booking.time,
@@ -370,56 +375,220 @@
         items: itemsWithPros,
         total: Number(booking.total) || 0
       };
-      
-      console.log('📤 إرسال البيانات:', bookingData);
-      
-      // إرسال الحجز للسيرفر
-      const response = await fetch('http://localhost:5000/api/bookings', {
-        method: 'POST',
+
+      console.log('📤 إرسال بيانات التحديث:', bookingData);
+
+      // إرسال تحديث الحجز للسيرفر
+      const response = await fetch(`http://localhost:5000/api/bookings/${booking.booking_id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(bookingData)
       });
-      
+
       console.log('📥 الرد من السيرفر:', response.status);
-      
+
       const result = await response.json();
       console.log('📦 البيانات المستلمة:', result);
-      
+
       if (!result.success) {
-        throw new Error(result.error || result.message || 'فشل حفظ الحجز');
+        throw new Error(result.error || result.message || 'فشل تحديث الحجز');
       }
-      
-      // حفظ البيانات في localStorage لعرضها في صفحة التأكيد
-      booking.customer_name = name;
-      booking.contact = {method: phone ? 'phone' : 'email', value: phone || email};
-      booking.booking_id = result.id;
+
+      // حفظ البيانات المحدثة في localStorage
       booking.pros = prosArray;
       localStorage.setItem('booking', JSON.stringify(booking));
-      
-      console.log('✅ تم الحفظ بنجاح!');
-      
-      // الانتقال لصفحة التأكيد
-      closeAuth();
-      redirectToConfirm();
-      
+
+      console.log('✅ تم التحديث بنجاح!');
+
+      // الانتقال لصفحة التأكيد مع رسالة النجاح
+      redirectToConfirmWithSuccess();
+
     } catch (error) {
-      console.error('❌ خطأ في حفظ الحجز:', error);
+      console.error('❌ خطأ في تحديث الحجز:', error);
       console.error('التفاصيل:', error.message);
-      
-      let errorMessage = 'حدث خطأ أثناء حفظ الحجز.';
-      
+
+      let errorMessage = 'حدث خطأ أثناء تحديث الحجز.';
+
       if (error.message.includes('Failed to fetch')) {
         errorMessage = '⚠️ لا يمكن الاتصال بالسيرفر.\nتأكدي من تشغيل السيرفر على المنفذ 5000';
       } else if (error.message) {
         errorMessage = `⚠️ ${error.message}`;
       }
-      
-      alert(errorMessage + '\n\nافتحي Console (F12) لمزيد من التفاصيل.');
-      
-      authSubmit.disabled = false;
-      authSubmit.textContent = 'تأكيد الحجز';
+
+      showServerErrorPopup(errorMessage);
+
+      goNextBtn.disabled = false;
+      goNextBtn.textContent = 'المتابعة';
+    }
+  }
+
+  goNextBtn.addEventListener('click',async ()=>{
+    if(!booking.dateIso || !booking.date){
+      alert('فضلاً اختاري يومًا أولاً.');
+      return;
+    }
+    if(!booking.time){
+      alert('فضلاً اختاري وقتًا.');
+      return;
+    }
+
+    booking.salon={name:'BONITA TOUCH',city:'النعيم، جدة'};
+    booking.items=(cart.items||[]).map(it=>({title:it.name||it.title,price:it.price||it.amount||'',minutes:it.minutes||45,details:it.details||'',cat:it.cat||it.category||''}));
+    booking.total=cart.total||0;
+    booking.prosByCategory=JSON.parse(sessionStorage.getItem('prosByCategory')||'{}');
+    booking.pros=Object.values(booking.prosByCategory||{});
+    localStorage.setItem('booking',JSON.stringify(booking));
+
+    if(isEditMode){
+      // وضع التعديل - تحديث الحجز مباشرة
+      await updateBooking();
+    } else {
+      // وضع الحجز الجديد - فتح مودال التسجيل
+      openAuth();
+    }
+  });
+  
+  modalClose.addEventListener('click',closeAuth);
+  modal.addEventListener('click',e=>{ if(e.target===modal) closeAuth(); });
+
+  const isValidPhone=v=>{
+    const cleaned = String(v||'').trim().replace(/[\s-]/g, '');
+    return /^0?5\d{8}$/.test(cleaned);
+  };
+
+  // ========================================
+  // ✨ الكود المحسّن لحفظ الحجز
+  // ========================================
+  authSubmit.addEventListener('click', async ()=>{
+    nameErr.classList.remove('show');
+    phoneErr.classList.remove('show');
+
+    const name=nameInp.value.trim(), phone=phoneInp.value.trim();
+
+    let hasError = false;
+
+    // التحقق من الاسم (مطلوب)
+    if(!name){
+      nameErr.classList.add('show');
+      hasError = true;
+    }
+
+    // التحقق من رقم الجوال (مطلوب)
+    if(!phone){
+      phoneErr.textContent = 'يرجى إدخال رقم الجوال';
+      phoneErr.classList.add('show');
+      hasError = true;
+    } else if(!isValidPhone(phone)){
+      phoneErr.textContent = 'أدخلي رقم جوال صالح. مثال: 05xxxxxxxx';
+      phoneErr.classList.add('show');
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
+    if (name && phone && isValidPhone(phone)) {
+      // تعطيل الزر أثناء الإرسال
+      authSubmit.disabled = true;
+      authSubmit.textContent = 'جاري الحفظ...';
+
+      try {
+        // جمع بيانات المحترفات بشكل صحيح
+        const prosArray = Object.entries(prosByCategory)
+          .filter(([cat, pro]) => pro !== null)
+          .map(([cat, pro]) => ({
+            id: pro.id,
+            name: pro.name,
+            rating: pro.rating,
+            category: cat
+          }));
+
+        // تحضير بيانات الخدمات مع المحترفة المناسبة لكل خدمة
+        const itemsWithPros = (booking.items || []).map(item => {
+          const itemCategory = item.cat || item.category;
+          const assignedPro = itemCategory ? prosByCategory[itemCategory] : null;
+
+          return {
+            service_name: item.title || item.name || 'خدمة',
+            price: Number(item.price) || 0,
+            minutes: Number(item.minutes) || 45,
+            details: item.details || '',
+            professional_id: assignedPro?.id || null,
+            professional_name: assignedPro?.name || null
+          };
+        });
+
+        // تنظيف رقم الجوال
+        const cleanPhone = phone.trim().replace(/[\s-]/g, '');
+
+        // إعداد بيانات الحجز للإرسال
+        const bookingData = {
+          customer_name: name,
+          contact: {
+            method: 'phone',
+            value: cleanPhone
+          },
+          date_iso: booking.dateIso,
+          date_display: booking.date,
+          time: booking.time,
+          professional: prosArray[0] || null,
+          items: itemsWithPros,
+          total: Number(booking.total) || 0
+        };
+
+        console.log('📤 إرسال البيانات:', bookingData);
+
+        // إرسال الحجز للسيرفر
+        const response = await fetch('http://localhost:5000/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bookingData)
+        });
+
+        console.log('📥 الرد من السيرفر:', response.status);
+
+        const result = await response.json();
+        console.log('📦 البيانات المستلمة:', result);
+
+        if (!result.success) {
+          throw new Error(result.error || result.message || 'فشل حفظ الحجز');
+        }
+
+        // حفظ البيانات في localStorage لعرضها في صفحة التأكيد
+        booking.customer_name = name;
+        booking.contact = cleanPhone;
+        booking.booking_id = result.id;
+        booking.pros = prosArray;
+        localStorage.setItem('booking', JSON.stringify(booking));
+
+        console.log('✅ تم الحفظ بنجاح!');
+
+        // الانتقال لصفحة التأكيد
+        closeAuth();
+        redirectToConfirm();
+
+      } catch (error) {
+        console.error('❌ خطأ في حفظ الحجز:', error);
+        console.error('التفاصيل:', error.message);
+
+        let errorMessage = 'حدث خطأ أثناء حفظ الحجز.';
+
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = '⚠️ لا يمكن الاتصال بالسيرفر.\nتأكدي من تشغيل السيرفر على المنفذ 5000';
+        } else if (error.message) {
+          errorMessage = `⚠️ ${error.message}`;
+        }
+
+        showServerErrorPopup(errorMessage);
+
+        authSubmit.disabled = false;
+        authSubmit.textContent = 'تأكيد الحجز';
+      }
     }
   });
 </script>

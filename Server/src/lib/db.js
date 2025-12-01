@@ -58,12 +58,26 @@ export function initDb() {
       time_str TEXT NOT NULL,
       professional_id INTEGER,
       professional_name TEXT,
+      service_name TEXT,
+      service_price INTEGER,
       total INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL DEFAULT 'confirmed',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (professional_id) REFERENCES professionals(id)
     )
   `);
+
+  // إضافة الأعمدة الجديدة إذا لم تكن موجودة
+  try {
+    db.exec(`ALTER TABLE bookings ADD COLUMN service_name TEXT;`);
+  } catch (e) {
+    // العمود موجود بالفعل
+  }
+  try {
+    db.exec(`ALTER TABLE bookings ADD COLUMN service_price INTEGER;`);
+  } catch (e) {
+    // العمود موجود بالفعل
+  }
 
   // جدول عناصر الحجز
   db.exec(`
