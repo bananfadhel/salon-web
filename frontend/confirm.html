@@ -200,9 +200,48 @@
   showSlide(currentIndex);
 
   // أزرار الانتقال 👇
-  cancelBtn.onclick = () => location.href = 'canceled.html';
+  cancelBtn.onclick = () => {
+    if (booking.booking_id) {
+      cancelModal.classList.add('show');
+    } else {
+      alert('لا يمكن إلغاء الحجز لأنه لم يتم حفظه بعد.');
+    }
+  };
   editBtn.onclick   = () => location.href = 'time.html';
   backHome.onclick  = () => location.href = 'home.html'; /* ⭐ تمت الإضافة هنا */
+
+  // إلغاء الحجز عبر API
+  confirmCancel.onclick = async () => {
+    if (!booking.booking_id) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/bookings/${booking.booking_id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // إزالة الحجز من localStorage
+        localStorage.removeItem('booking');
+        // الانتقال لصفحة الإلغاء
+        location.href = 'canceled.html';
+      } else {
+        alert('فشل في إلغاء الحجز: ' + (result.error || 'خطأ غير معروف'));
+      }
+    } catch (error) {
+      console.error('خطأ في إلغاء الحجز:', error);
+      alert('تعذر الاتصال بالسيرفر. تأكد من تشغيل السيرفر على المنفذ 5000');
+    }
+  };
+
+  // إغلاق المودال
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.onclick = () => cancelModal.classList.remove('show');
+  });
+  cancelModal.onclick = (e) => {
+    if (e.target === cancelModal) cancelModal.classList.remove('show');
+  };
 
   // استرجاع بيانات الحجز من LocalStorage
   let booking = {};
@@ -231,7 +270,7 @@
     document.getElementById('timeOut').textContent  = booking.time || '—';
     document.getElementById('totalSide').textContent = booking.total || 0;
     document.getElementById('customerName').textContent = booking.customer_name || '—';
-    document.getElementById('customerPhone').textContent = booking.contact_value || '—';
+    document.getElementById('customerPhone').textContent = (booking.contact && booking.contact.value) || '—';
 
     const prosPill = document.getElementById('prosPill');
     prosPill.textContent = (booking.pros && booking.pros.length)
