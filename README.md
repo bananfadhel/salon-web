@@ -55,8 +55,6 @@ salon-web/
 ├── .gitignore
 └── package-lock.json
 
-yaml
-نسخ الكود
 
 ---
 
@@ -68,17 +66,14 @@ git clone https://github.com/bananfadhel/salon-web.git
 cd salon-web
 2️⃣ Install backend dependencies
 bash
-نسخ الكود
 cd Server
 npm install
 3️⃣ Start the server
 bash
-نسخ الكود
 npm start
 Default server runs on:
 
 arduino
-نسخ الكود
 http://localhost:5000
 🧪 API Endpoints (Samples)
 🌸 Customer Endpoints
